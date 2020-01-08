@@ -7,7 +7,7 @@
 #include <QtOpenGL>
 
 // Lab application
-#include "Lab.h"
+#include "Lab0.h"
 
 int main(int argc, char** argv) {
   QApplication a(argc, argv);
