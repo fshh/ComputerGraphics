@@ -17,7 +17,7 @@ PPM::PPM(std::string fileName){
 	// Open the file
 	std::ifstream infile(fileName);
 	
-	// Read the pixel data
+	// Read the file
 	if (infile.is_open()) {
 		// String to read file data into
 		std::string line;
@@ -50,9 +50,13 @@ PPM::PPM(std::string fileName){
 			char* cstr = new char[line.length() + 1];
 			std::strcpy(cstr, line.c_str());
 			
+			// Read each token in the line
 			char* token = std::strtok(cstr, " \n");
 			while(token != nullptr) {
+				// Multiply value in file by colorScale to scale it up to 0-255 range
 				m_PixelData[index] = (unsigned char)(colorScale * std::atoi(token));
+				
+				// Prepare next token, move to next value in pixel data
 				token = std::strtok(nullptr, " \n");
 				index++;
 			}
@@ -89,11 +93,14 @@ void PPM::savePPM(std::string outputFileName){
 		std::fprintf(fp, "%d %d\n", m_width, m_height);
 		std::fputs("255\n",fp);
 		
+		// Write pixel data
 		for(int ii = 0; ii < m_width * m_height * 3; ++ii){
 			std::fprintf(fp, "%d", m_PixelData[ii]);
 			std::fputs(" ",fp);
 			std::fputs("\n",fp);
 		}
+		
+		// Close file
 		std::fclose(fp);
 		outfile.close();
 	}
@@ -104,7 +111,10 @@ void PPM::savePPM(std::string outputFileName){
 // in the PPM. Note that no values may be less than
 // 0 in a ppm.
 void PPM::darken(){
+	// Get number of values in file
 	int values = m_width * m_height * 3;
+	
+	// Reduce each value by 50 while remaining in 0-255 range
 	for (int ii = 0; ii < values; ++ii) {
 		m_PixelData[ii] = (unsigned char)clampRGB((int)m_PixelData[ii] - 50);
 	}
@@ -127,6 +137,7 @@ void PPM::setPixel(int x, int y, int R, int G, int B){
 	}
 }
 
+// Returns true if the given filename ends in .ppm
 bool PPM::isPPMFile(std::string fileName) {
 	// Find last occurence of a period in the string, so we can get the file extension
 	std::size_t dot = fileName.rfind(".");
@@ -138,6 +149,7 @@ bool PPM::isPPMFile(std::string fileName) {
 	return false;
 }
 
+// Clamps a given value to a 0-255 range
 int PPM::clampRGB(int val) {
 	return val < 0 ? 0 : (val > 255 ? 255 : val);
 }
