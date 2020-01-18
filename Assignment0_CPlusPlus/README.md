@@ -1,14 +1,13 @@
 # Assignment 1 - Modern C++ PPM Library
 
-*TODO*: Please edit the following information in your assignment
-
 * Name and partners name (At most 1 partner for this assignment): 
+Andrew Knollmeyer
 * How many hours did it take you to complete this assignment? 
+4 hours
 * Did you collaborate or share ideas with any other students/TAs/Professors? 
+No
 * Did you use any external resources? 
-  * (tbd if any)
-  * (tbd if any)
-  * (tbd if any)
+  * cplusplus.com
 * (Optional) What was the most interesting part of the assignment? How would you improve this assignment?
   
 ## Description
