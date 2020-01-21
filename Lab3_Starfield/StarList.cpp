@@ -1,4 +1,5 @@
 #include "StarList.h"
+#include <QtCore/QtMath>
 
 StarList::StarList(unsigned int numStars, float spread, float speed) : spread_(spread), speed_(speed)
 {
@@ -34,8 +35,8 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
     float halfHeight = 600 / 2.0f;
 
     // Note the conversion to radians
-    // TODO: Modify me
-    float tanHalfFOV = 1;
+    // Half the tangent of our FOV = tangent of (half the width divided by half the height)
+    float tanHalfFOV = qTan(halfWidth / halfHeight);
 
     // Iterate through all of your stars 
     for (int i = 0; i < stars_.size(); i++) {
@@ -46,8 +47,8 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
             continue;
         }
 
-        // TODO: Modify me!!
-        float givePerspective = 1;
+        // Perspective achieved by dividing x and y by (half the tangent of our FOV * z)
+        float givePerspective = tanHalfFOV * stars_[i].z;
 
         // Apply our perspective
         int x = (int)((stars_[i].x / (givePerspective)) * halfWidth + halfWidth);
