@@ -35,8 +35,7 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
     float halfHeight = 600 / 2.0f;
 
     // Note the conversion to radians
-    // Half the tangent of our FOV = tangent of (half the width divided by half the height)
-    float tanHalfFOV = qTan(halfWidth / halfHeight);
+    float tanHalfFOV = qTan(qDegreesToRadians((float)70 / 2));
 
     // Iterate through all of your stars 
     for (int i = 0; i < stars_.size(); i++) {
@@ -53,7 +52,15 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
         // Apply our perspective
         int x = (int)((stars_[i].x / (givePerspective)) * halfWidth + halfWidth);
         int y = (int)((stars_[i].y / (givePerspective)) * halfHeight + halfHeight);
-
+		
+		/*
+		// spiral star around center
+		float cos = qCos(stars_[i].z);
+		float sin = qSin(stars_[i].z);
+		int x = x1 + (x1 * cos - y1 * sin);
+		int y = y1 + (x1 * sin - y1 * cos);
+		 */
+		
         // Reinitialize a star
         if (x <0 || x >= windowSize.width()) {
             initStar(i);
