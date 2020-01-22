@@ -1,4 +1,5 @@
 #include "StarList.h"
+#include <QtCore/QtMath>
 
 StarList::StarList(unsigned int numStars, float spread, float speed) : spread_(spread), speed_(speed)
 {
@@ -34,8 +35,7 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
     float halfHeight = 600 / 2.0f;
 
     // Note the conversion to radians
-    // TODO: Modify me
-    float tanHalfFOV = 1;
+    float tanHalfFOV = qTan(qDegreesToRadians((float)70 / 2));
 
     // Iterate through all of your stars 
     for (int i = 0; i < stars_.size(); i++) {
@@ -46,13 +46,26 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
             continue;
         }
 
-        // TODO: Modify me!!
-        float givePerspective = 1;
+        // Perspective achieved by dividing x and y by (half the tangent of our FOV * z)
+        float givePerspective = tanHalfFOV * stars_[i].z;
 
         // Apply our perspective
         int x = (int)((stars_[i].x / (givePerspective)) * halfWidth + halfWidth);
         int y = (int)((stars_[i].y / (givePerspective)) * halfHeight + halfHeight);
-
+		
+		// spiral stars around center
+		float cos = qCos(stars_[i].z);
+		float sin = qSin(stars_[i].z);
+		// translate point back to origin
+		x -= halfWidth;
+		y -= halfHeight;
+		// rotate point
+		int x1 = x * cos - y * sin;
+		int y1 = x * sin + y * cos;
+		// translate point back
+		x = x1 + halfWidth;
+		y = y1 + halfHeight;
+		
         // Reinitialize a star
         if (x <0 || x >= windowSize.width()) {
             initStar(i);
