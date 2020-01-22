@@ -12,12 +12,17 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
+< 30 minutes
 - Did you collaborate with any other students/TAs/Professors?
+No.
 - Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+  - Just the lab slides.
 - (Optional) What was your favorite part of the lab?
+Seeing the stars fly by!
 - (Optional) How would you improve the lab?
+The wording/grammar on the lab slides could be improved; it was hard to understand what the text on the slides was saying at times.
+
+Similarly, the README for labs could go into more detail on the expected behavior of our program.
 
 ## Logistics
 
