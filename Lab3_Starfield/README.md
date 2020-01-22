@@ -12,13 +12,14 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
-< 30 minutes
+< 30 minutes for base behavior, 1.5 hours with vortex effect
 - Did you collaborate with any other students/TAs/Professors?
 No.
 - Did you use any external resources? (Cite them below)
-  - Just the lab slides.
+  - The lab slides.
+  - I used this StackOverflow post to help with the vortex effect: https://stackoverflow.com/questions/2259476/rotating-a-point-about-another-point-2d
 - (Optional) What was your favorite part of the lab?
-Seeing the stars fly by!
+Getting the vortex effect working (and seeing the weird broken visualizations I got along the way).
 - (Optional) How would you improve the lab?
 The wording/grammar on the lab slides could be improved; it was hard to understand what the text on the slides was saying at times.
 

@@ -53,13 +53,18 @@ void StarList::updateAndRender(QImage& image, float delta, const QSize& windowSi
         int x = (int)((stars_[i].x / (givePerspective)) * halfWidth + halfWidth);
         int y = (int)((stars_[i].y / (givePerspective)) * halfHeight + halfHeight);
 		
-		/*
-		// spiral star around center
+		// spiral stars around center
 		float cos = qCos(stars_[i].z);
 		float sin = qSin(stars_[i].z);
-		int x = x1 + (x1 * cos - y1 * sin);
-		int y = y1 + (x1 * sin - y1 * cos);
-		 */
+		// translate point back to origin
+		x -= halfWidth;
+		y -= halfHeight;
+		// rotate point
+		int x1 = x * cos - y * sin;
+		int y1 = x * sin + y * cos;
+		// translate point back
+		x = x1 + halfWidth;
+		y = y1 + halfHeight;
 		
         // Reinitialize a star
         if (x <0 || x >= windowSize.width()) {
