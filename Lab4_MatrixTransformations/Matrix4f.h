@@ -33,12 +33,10 @@ public:
 	}
 
     void InitTranslation(float x,float y,float z) {
-        // TODO:
-        // Implement  correct translation matrix
-        m[0][0] = 0;    m[0][1] = 0; m[0][2] = 0; m[0][3] = 0;
-        m[1][0] = 0;    m[1][1] = 0; m[1][2] = 0; m[1][3] = 0;
-        m[2][0] = 0;    m[2][1] = 0; m[2][2] = 0; m[2][3] = 0;
-        m[3][0] = 0;    m[3][1] = 0; m[3][2] = 0; m[3][3] = 0;
+        m[0][0] = 1;    m[0][1] = 0; m[0][2] = 0; m[0][3] = x;
+        m[1][0] = 0;    m[1][1] = 1; m[1][2] = 0; m[1][3] = y;
+        m[2][0] = 0;    m[2][1] = 0; m[2][2] = 1; m[2][3] = z;
+        m[3][0] = 0;    m[3][1] = 0; m[3][2] = 0; m[3][3] = 1;
     }
 
     // x,y,z as angles
@@ -48,21 +46,20 @@ public:
         Matrix4f ry;
         Matrix4f rz;
         
-        // TODO:
-        rz.Set(0,0, 0);         rz.Set(0,1,0);      rz.Set(0,2,0);  rz.Set(0,3,0); 
-        rz.Set(1,0, 0);         rz.Set(1,1,0);      rz.Set(1,2,0);  rz.Set(1,3,0);
-        rz.Set(2,0, 0);         rz.Set(2,1,0);      rz.Set(2,2,1);  rz.Set(2,3,0);
-        rz.Set(3,0, 0);         rz.Set(3,1,0);      rz.Set(3,2,0);  rz.Set(3,3,1);
-    
-        rx.Set(0,0, 1);         rx.Set(0,1,0);      rx.Set(0,2,0);  rx.Set(0,3,0); 
-        rx.Set(1,0, 0);         rx.Set(1,1,0);      rx.Set(1,2,0);  rx.Set(1,3,0);
-        rx.Set(2,0, 0);         rx.Set(2,1,0);      rx.Set(2,2,0);  rx.Set(2,3,0);
-        rx.Set(3,0, 0);         rx.Set(3,1,0);      rx.Set(3,2,0);  rx.Set(3,3,1);
+        rx.Set(0,0,1);		rx.Set(0,1,0);				rx.Set(0,2,0);				rx.Set(0,3,0);
+        rx.Set(1,0,0);		rx.Set(1,1,std::cos(x));	rx.Set(1,2,std::sin(x));	rx.Set(1,3,0);
+        rx.Set(2,0,0);		rx.Set(2,1,-std::sin(x));	rx.Set(2,2,std::cos(x));	rx.Set(2,3,0);
+        rx.Set(3,0,0);		rx.Set(3,1,0);				rx.Set(3,2,0);				rx.Set(3,3,1);
 
-        ry.Set(0,0, 0);         ry.Set(0,1,0);      ry.Set(0,2,0);  ry.Set(0,3,0); 
-        ry.Set(1,0, 0);         ry.Set(1,1,1);      ry.Set(1,2,0);  ry.Set(1,3,0);
-        ry.Set(2,0, 0);         ry.Set(2,1,0);      ry.Set(2,2,0);  ry.Set(2,3,0);
-        ry.Set(3,0, 0);         ry.Set(3,1,0);      ry.Set(3,2,0);  ry.Set(3,3,1);
+        ry.Set(0,0,std::cos(y));	ry.Set(0,1,0);		ry.Set(0,2,-std::sin(y));	ry.Set(0,3,0);
+        ry.Set(1,0,0);				ry.Set(1,1,1);		ry.Set(1,2,0);				ry.Set(1,3,0);
+        ry.Set(2,0,std::sin(y));	ry.Set(2,1,0);		ry.Set(2,2,std::cos(y));	ry.Set(2,3,0);
+        ry.Set(3,0,0);				ry.Set(3,1,0);		ry.Set(3,2,0);				ry.Set(3,3,1);
+		
+        rz.Set(0,0,std::cos(z));	rz.Set(0,1,std::sin(z));	rz.Set(0,2,0);		rz.Set(0,3,0);
+        rz.Set(1,0,-std::sin(z));	rz.Set(1,1,std::cos(z));	rz.Set(1,2,0);		rz.Set(1,3,0);
+        rz.Set(2,0,0);				rz.Set(2,1,0);				rz.Set(2,2,1);		rz.Set(2,3,0);
+        rz.Set(3,0,0);				rz.Set(3,1,0);				rz.Set(3,2,0);		rz.Set(3,3,1);
   
         // Multiply the matrices
         // Copy values into 'm'
@@ -93,14 +90,11 @@ public:
     // Transform here is simply returning a 'new' vector
     // which will move our 'vertex' to a new position.
 	Vector4f Transform(Vector4f b){
-    // TODO: Implement transform
-    //       The pattern is given for the first component of the vector.
-    //       Fill in the values for the '0.0' for y,z,w
         return Vector4f(
             m[0][0] * b.GetX() + m[0][1] * b.GetY() + m[0][2] * b.GetZ() + m[0][3] * b.GetW(),
-            0.0,
-            0.0,
-            0.0);
+            m[1][0] * b.GetX() + m[1][1] * b.GetY() + m[1][2] * b.GetZ() + m[1][3] * b.GetW(),
+            m[2][0] * b.GetX() + m[2][1] * b.GetY() + m[2][2] * b.GetZ() + m[2][3] * b.GetW(),
+			m[3][0] * b.GetX() + m[3][1] * b.GetY() + m[3][2] * b.GetZ() + m[3][3] * b.GetW());
 	}
 
 
