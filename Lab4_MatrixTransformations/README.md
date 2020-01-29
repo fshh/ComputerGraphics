@@ -12,11 +12,17 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
+
+1 hour
 - Did you collaborate with any other students/TAs/Professors?
+
+No.
 - Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+
+No.
 - (Optional) What was your favorite part of the lab?
+
+Going from black screen to spinning triangle in one little change!
 - (Optional) How would you improve the lab?
 
 ## Logistics
