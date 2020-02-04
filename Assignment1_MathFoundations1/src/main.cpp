@@ -107,12 +107,14 @@ bool unitTest2(){
 // TODO: Test against glm::scale
 bool unitTest3(){
 	glm::mat4 glmScale = glm::mat4(2.0f);
-	Vector4f a(1.0f,0,0,0);
-	Vector4f b(0.0f,1.0f,0,0);
-	Vector4f c(0,0,1.0f,0);
-	Vector4f d(0,0,0,1.0f);
-	Matrix4f myScaled(a,b,c,d);
-    myScaled.MakeScale(2.0f,2.0f,2.0f);
+	Matrix4f myScaled = Matrix4f::MakeScale(2.0f, 2.0f, 2.0f);
+	for (int ii = 0; ii < 4; ii++) {
+		for (int jj = 0; jj < 4; jj++) {
+			std::cout << std::to_string(glmScale[ii][jj]) << ", ";
+		}
+		std::cout << '\n';
+	}
+	std::cout << myScaled.toString() << std::endl;
 
     if(
         glmScale[0][0]==myScaled[0][0] &&
