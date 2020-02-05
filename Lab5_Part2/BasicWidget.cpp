@@ -206,8 +206,12 @@ void BasicWidget::initializeGL()
   vbo_.allocate(verts, 12 * sizeof(GL_FLOAT));
 
   // TODO:  Generate our color buffer
+  //cbo_.bind();
+  cbo_.allocate(colors, 16 * sizeof(GL_FLOAT));
   // ENDTODO
   // TODO:  Generate our index buffer
+  //ibo_.bind();
+  ibo_.allocate(idx, 6 * sizeof(GL_UNSIGNED_INT));
   // ENDTODO
 
   // Create a VAO to keep track of things for us.
@@ -260,7 +264,7 @@ void BasicWidget::paintGL()
   shaderProgram_.bind();
   vao_.bind();
   // TODO: Change number of indices drawn
-  glDrawElements(GL_TRIANGLES, ??, GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, 4, GL_UNSIGNED_INT, 0);
   // ENDTODO
   vao_.release();
   shaderProgram_.release();
@@ -287,7 +291,7 @@ void BasicWidget::paintGL()
   glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, iboID_);
   // Render
   // TODO: Change number of indices drawn
-  glDrawElements(GL_TRIANGLES, ??, GL_UNSIGNED_INT, nullptr);
+  glDrawElements(GL_TRIANGLES, 4, GL_UNSIGNED_INT, nullptr);
   // ENDTODO
   // Unbind everything
   glDisableVertexAttribArray(0);
