@@ -4,7 +4,7 @@
 #include <QtWidgets>
 #include <QtOpenGL>
 
-#define USE_QT_OPENGL false
+#define USE_QT_OPENGL true
 
 /**
  * This is just a basic OpenGL widget that will allow a change of background color.

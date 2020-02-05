@@ -34,7 +34,7 @@ QString BasicWidget::vertexShaderString() const
 	"layout(location = 0) in vec3 position;\n"
 	"void main()\n"
 	"{\n"
-	"  gl_Position = vec4(position, 1.0);\n"
+	"  gl_Position = vec4(position, 2.0);\n"
 	"}\n";
   return str;
 }
@@ -46,7 +46,7 @@ QString BasicWidget::fragmentShaderString() const
 	"out vec4 color;\n"
 	"void main()\n"
 	"{\n"
-	"  color = vec4(0.0f, 0.0f, 1.0f, 1.0f);\n"
+	"  color = vec4(0.0f, 0.5f, 0.5f, 1.0f);\n"
 	"}\n";
   return str;
 }
@@ -199,7 +199,7 @@ void BasicWidget::paintGL()
   glDisable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
 
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClearColor(0.5f, 0.5f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 #if USE_QT_OPENGL
