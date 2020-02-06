@@ -104,17 +104,9 @@ bool unitTest2(){
 }
 
 // Sample unit test comparing against GLM.
-// TODO: Test against glm::scale
 bool unitTest3(){
-	glm::mat4 glmScale = glm::mat4(2.0f);
+	glm::mat4 glmScale = glm::scale(glm::vec3(2.0f, 2.0f, 2.0f));
 	Matrix4f myScaled = Matrix4f::MakeScale(2.0f, 2.0f, 2.0f);
-	for (int ii = 0; ii < 4; ii++) {
-		for (int jj = 0; jj < 4; jj++) {
-			std::cout << std::to_string(glmScale[ii][jj]) << ", ";
-		}
-		std::cout << '\n';
-	}
-	std::cout << myScaled.toString() << std::endl;
 
     if(
         glmScale[0][0]==myScaled[0][0] &&
