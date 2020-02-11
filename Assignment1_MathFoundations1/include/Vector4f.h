@@ -2,6 +2,8 @@
 #define Vector4f_H
 
 #include <cmath>
+#include <stdexcept>
+#include <string>
 
 // Vector4f performs vector operations with 4-dimensions
 // The purpose of this class is primarily for 3D graphics
@@ -17,118 +19,129 @@ struct Vector4f{
 
     // The "Real" constructor we want to use.
     // This initializes the values x,y,z
-    Vector4f(float a, float b, float c, float d){
-      // TODO:
-    }
+	explicit Vector4f(float a, float b, float c, float d): x(a), y(b), z(c), w(d) { }
 
     // Index operator, allowing us to access the individual
     // x,y,z,w components of our vector.
     float& operator[](int i){
-        // TODO: Discuss with your partner why this works.
-        //       There is no code to change here.
       return ((&x)[i]);
     }
 
     // Index operator, allowing us to access the individual
     // x,y,z,w components of our vector.
     const float& operator[](int i) const{
-        // TODO: Discuss with your partner why this works.
-        //       There is no code to change here.
         return ((&x)[i]);
     }
 
     // Multiplication Operator
     // Multiply vector by a uniform-scalar.
     Vector4f& operator *=(float s){
-        // TODO:
+		x *= s;
+		y *= s;
+		z *= s;
+		w *= s;
         return (*this);
     }
 
     // Division Operator
     Vector4f& operator /=(float s){
-        // TODO:
-
+		if (s == 0.0f) {
+			throw std::domain_error("Cannot divide by 0.");
+		}
+		x /= s;
+		y /= s;
+		z /= s;
+		w /= s;
         return (*this);
     }
 
     // Addition operator
     Vector4f& operator +=(const Vector4f& v){
-        // TODO:
-
-      return (*this);
+		x += v.x;
+		y += v.y;
+		z += v.z;
+		w += v.w;
+		return (*this);
     }
 
     // Subtraction operator
     Vector4f& operator -=(const Vector4f& v){
-        // TODO:
-
-      return (*this);
+		x -= v.x;
+		y -= v.y;
+		z -= v.z;
+		w -= v.w;
+		return (*this);
     }
+	
+	// For debugging purposes ONLY (it's not fast!)
+	std::string toString() {
+		return std::string(
+			std::to_string(x) + ", " +
+			std::to_string(y) + ", " +
+			std::to_string(z) + ", " +
+			std::to_string(w));
+	}
 
 };
 
 // Compute the dot product of a Vector4f
 inline float Dot(const Vector4f& a, const Vector4f& b){
-  // TODO:
-  return 0;
+	return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
 }
 
 // Multiplication of a vector by a scalar values
 inline Vector4f operator *(const Vector4f& v, float s){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	return Vector4f(v.x * s, v.y * s, v.z * s, v.w * s);
 }
 
 // Division of a vector by a scalar value.
 inline Vector4f operator /(const Vector4f& v, float s){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	if (s == 0.0f) {
+		throw std::domain_error("Cannot divide by 0.");
+	}
+	return Vector4f(v.x / s, v.y / s, v.z / s, v.w / s);
 }
 
 // Negation of a vector
 // Use Case: Sometimes it is handy to apply a force in an opposite direction
 inline Vector4f operator -(const Vector4f& v){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	return Vector4f(-v.x, -v.y, -v.z, -v.w);
 }
 
 // Return the magnitude of a vector
 inline float Magnitude(const Vector4f& v){
-  // TODO:
-  return 0;
+	return std::sqrt(std::pow(v.x, 2) + std::pow(v.y, 2) + std::pow(v.z, 2) + std::pow(v.w, 2));
 }
 
 // Add two vectors together
 inline Vector4f operator +(const Vector4f& a, const Vector4f& b){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	return Vector4f(a.x + b.x, a.y + b.y, a.z + b.z, a.w + b.w);
 }
 
 // Subtract two vectors
 inline Vector4f operator -(const Vector4f& a, const Vector4f& b){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	return Vector4f(a.x - b.x, a.y - b.y, a.z - b.z, a.w - b.w);
 }
 
 // Vector Projection
 // Note: This is the vector projection of 'a' onto 'b'
 inline Vector4f Project(const Vector4f& a, const Vector4f& b){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	float denom = Dot(b, b);
+	if (denom == 0.0f) {
+	  throw std::domain_error("Cannot project onto a zero vector.");
+	}
+	float coefficient = Dot(a, b) / denom;
+	return Vector4f(b.x * coefficient, b.y * coefficient, b.z * coefficient, b.w * coefficient);
 }
 
 // Set a vectors magnitude to 1
 // Note: This is NOT generating a normal vector
 inline Vector4f Normalize(const Vector4f& v){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	float mag = Magnitude(v);
+	if (mag == 0.0f) {
+	  throw std::domain_error("Cannot normalize a zero vector.");
+	}
+	return Vector4f(v.x / mag, v.y / mag, v.z / mag, v.w / mag);
 }
 
 // a x b (read: 'a crossed b')
@@ -138,9 +151,7 @@ inline Vector4f Normalize(const Vector4f& v){
 //       to vectors in 3-dimensions. Simply ignore w, and set to (0,0,0,1)
 //       for this vector.
 inline Vector4f CrossProduct(const Vector4f& a, const Vector4f& b){
-  // TODO:
-  Vector4f vec;
-  return vec;
+	return Vector4f(a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x, 1.0f);
 }
 
 
