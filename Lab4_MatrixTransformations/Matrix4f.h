@@ -94,7 +94,7 @@ public:
             m[0][0] * b.GetX() + m[0][1] * b.GetY() + m[0][2] * b.GetZ() + m[0][3] * b.GetW(),
             m[1][0] * b.GetX() + m[1][1] * b.GetY() + m[1][2] * b.GetZ() + m[1][3] * b.GetW(),
             m[2][0] * b.GetX() + m[2][1] * b.GetY() + m[2][2] * b.GetZ() + m[2][3] * b.GetW(),
-			m[3][0] * b.GetX() + m[3][1] * b.GetY() + m[3][2] * b.GetZ() + m[3][3] * b.GetW());
+            m[3][0] * b.GetX() + m[3][1] * b.GetY() + m[3][2] * b.GetZ() + m[3][3] * b.GetW());
 	}
 
 
