@@ -145,9 +145,11 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
   // Handle key events here.
   if (keyEvent->key() == Qt::Key_Left) {
     qDebug() << "Left Arrow Pressed";
+		vertsToDraw = 3;
     update();  // We call update after we handle a key press to trigger a redraw when we are ready
   } else if (keyEvent->key() == Qt::Key_Right) {
     qDebug() << "Right Arrow Pressed";
+		vertsToDraw = 6;
     update();  // We call update after we handle a key press to trigger a redraw when we are ready
   } else {
     qDebug() << "You Pressed an unsupported Key!";
@@ -206,11 +208,13 @@ void BasicWidget::initializeGL()
   vbo_.allocate(verts, 12 * sizeof(GL_FLOAT));
 
   // TODO:  Generate our color buffer
-  //cbo_.bind();
+  cbo_.create();
+  cbo_.bind();
   cbo_.allocate(colors, 16 * sizeof(GL_FLOAT));
   // ENDTODO
   // TODO:  Generate our index buffer
-  //ibo_.bind();
+	ibo_.create();
+  ibo_.bind();
   ibo_.allocate(idx, 6 * sizeof(GL_UNSIGNED_INT));
   // ENDTODO
 
@@ -264,7 +268,7 @@ void BasicWidget::paintGL()
   shaderProgram_.bind();
   vao_.bind();
   // TODO: Change number of indices drawn
-  glDrawElements(GL_TRIANGLES, 4, GL_UNSIGNED_INT, 0);
+  glDrawElements(GL_TRIANGLES, vertsToDraw, GL_UNSIGNED_INT, 0);
   // ENDTODO
   vao_.release();
   shaderProgram_.release();

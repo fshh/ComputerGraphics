@@ -20,6 +20,7 @@ private:
   QString fragmentShaderString() const;
   void createShader();
   QOpenGLVertexArrayObject vao_;
+	int vertsToDraw = 3;
 
 protected:
   // Required interaction overrides
