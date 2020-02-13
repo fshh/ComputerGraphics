@@ -2,7 +2,7 @@
 
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), vbo_(QOpenGLBuffer::VertexBuffer), cbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), logger_(this)
+BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), logger_(this)
 {
   setFocusPolicy(Qt::StrongFocus);
 }
@@ -11,10 +11,6 @@ BasicWidget::~BasicWidget()
 {
   vbo_.release();
   vbo_.destroy();
-  // TODO: Remove the CBO
-  cbo_.release();
-  cbo_.destroy();
-  // End TODO
   ibo_.release();
   ibo_.destroy();
   vao_.release();
@@ -148,20 +144,15 @@ void BasicWidget::initializeGL()
   // Temporary bind of our shader.
   shaderProgram_.bind();
 
-  // TODO:  Create a position + color buffer
-  // Note - use the vbo_ member provided 
+  // Note - use the vbo_ member provided
   vbo_.create();
   vbo_.setUsagePattern(QOpenGLBuffer::StaticDraw);
   vbo_.bind();
-  vbo_.allocate(verts, 3 * 3 * sizeof(GL_FLOAT));
-  // END TODO
-  
-  // TODO:  Remove the cbo_
-  cbo_.create();
-  cbo_.setUsagePattern(QOpenGLBuffer::StaticDraw);
-  cbo_.bind();
-  cbo_.allocate(colors, 3 * 4 * sizeof(GL_FLOAT));
-  // END TODO
+	int vertBytes = 3 * 3 * sizeof(GL_FLOAT);
+	int colorBytes = 3 * 4 * sizeof(GL_FLOAT);
+	vbo_.allocate(vertBytes + colorBytes);
+	vbo_.write(0, verts, vertBytes);
+	vbo_.write(vertBytes, colors, colorBytes);
 
   // TODO:  Generate our index buffer
   ibo_.create();
@@ -173,16 +164,11 @@ void BasicWidget::initializeGL()
   // Create a VAO to keep track of things for us.
   vao_.create();
   vao_.bind();
-  vbo_.bind();
-  // TODO:  Enable the attribute arrays for position and color
-  // Note:  Remember that Offset and Stride are expressed in terms
-  //        of bytes!
+	vbo_.bind();
   shaderProgram_.enableAttributeArray(0);
   shaderProgram_.setAttributeBuffer(0, GL_FLOAT, 0, 3);
-  cbo_.bind();
   shaderProgram_.enableAttributeArray(1);
-  shaderProgram_.setAttributeBuffer(1, GL_FLOAT, 0, 4);
-  // END TODO
+  shaderProgram_.setAttributeBuffer(1, GL_FLOAT, vertBytes, 4);
 
   ibo_.bind();
   // Releae the vao THEN the vbo
@@ -196,6 +182,7 @@ void BasicWidget::resizeGL(int w, int h)
 {
   glViewport(0, 0, w, h);
   // TODO:  Set up the model, view, and projection matrices
+	QMatrix4x4 mvp = projection_ * view_ * model_;
   // END TODO
 }
 
