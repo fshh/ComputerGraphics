@@ -13,6 +13,11 @@ class BasicWidget : public QOpenGLWidget, protected QOpenGLFunctions
   Q_OBJECT
 
 private:
+  QString vertexShaderString() const;
+  QString fragmentShaderString() const;
+  void createShader();
+  QOpenGLVertexArrayObject vao_;
+  
 	QVector<Model> models;
 	size_t currentModel = 0;
 
@@ -24,6 +29,11 @@ protected:
   void initializeGL() override;
   void resizeGL(int w, int h) override;
   void paintGL() override;
+	
+	QOpenGLBuffer vbo_;
+  QOpenGLBuffer cbo_;
+  QOpenGLBuffer ibo_;
+  QOpenGLShaderProgram shaderProgram_;
 
 public:
   BasicWidget(QWidget* parent=nullptr);
