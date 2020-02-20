@@ -11,68 +11,6 @@ BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent)
 
 BasicWidget::~BasicWidget()
 {
-  vao_.release();
-  vao_.destroy();
-}
-
-//////////////////////////////////////////////////////////////////////
-// Privates
-QString BasicWidget::vertexShaderString() const
-{
-  QString str =
-	"#version 330\n"
-	"uniform vec3 lightDir = vec3(0.2, -1, 0.2);\n"
-	"layout(location = 0) in vec3 position;\n"
-  "layout(location = 1) in vec3 normal;\n"
-	"varying float intensity;\n"
-	"void main()\n"
-	"{\n"
-	"  gl_Position = vec4(position, 1.0);\n"
-	"  intensity = dot(lightDir, normal)"
-  "}\n";
-  return str;
-}
-
-QString BasicWidget::fragmentShaderString() const
-{
-  QString str =
-	"#version 330\n"
-  "varying float intensity;\n"
-	"out vec4 color;\n"
-	"void main()\n"
-	"{\n"
-	"  vec4 vertColor;\n"
-	"	 if (intensity > 0.95)\n"
-	"    vertColor = vec4(1.0, 0.5, 0.5, 1.0);\n"
-	"  else if (intensity > 0.5)\n"
-	"    vertColor = vec4(0.6, 0.3, 0.3, 1.0);\n"
-	"  else if (intensity > 0.25)\n"
-	"    vertColor = vec4(0.4, 0.2, 0.2, 1.0);\n"
-	"  else\n"
-	"    vertColor = vec4(0.2, 0.1, 0.1, 1.0);\n"
-	"  color = vertColor;\n"
-	"}\n";
-  return str;
-}
-
-void BasicWidget::createShader()
-{
-  QOpenGLShader vert(QOpenGLShader::Vertex);
-  vert.compileSourceCode(vertexShaderString());
-  QOpenGLShader frag(QOpenGLShader::Fragment);
-  frag.compileSourceCode(fragmentShaderString());
-  bool ok = shaderProgram_.addShader(&vert);
-  if(!ok) {
-	qDebug() << shaderProgram_.log();
-  }
-  ok = shaderProgram_.addShader(&frag);
-  if(!ok) {
-	qDebug() << shaderProgram_.log();
-  }
-  ok = shaderProgram_.link();
-  if(!ok) {
-	qDebug() << shaderProgram_.log();
-  }
 }
 
 ///////////////////////////////////////////////////////////////////////
@@ -114,18 +52,18 @@ void BasicWidget::initializeGL()
   qDebug() << "  Version: " << reinterpret_cast<const char*>(glGetString(GL_VERSION));
   qDebug() << "  GLSL Version: " << reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-  // Set up our shaders.
-  createShader();
-
 	// declare our model names
 	QVector<std::string> modelFiles{
-		"./objects/monkey.obj",
-		"./objects/bunny.obj"
+		"./objects/cube.obj"
 	};
 	
 	// load obj data
 	for (std::string& file : modelFiles) {
-		models.append(OBJLoader::loadOBJ(file, &shaderProgram_));
+		models.append(OBJLoader::loadOBJ(file));
+	}
+	
+	for (Model& model : models) {
+		qDebug() << model.vertsToDraw;
 	}
 
   glViewport(0, 0, width(), height());
@@ -144,9 +82,9 @@ void BasicWidget::paintGL()
   glClearColor(0.f, 0.f, 0.f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  shaderProgram_.bind();
+  models[currentModel].shaderProgram_.bind();
   models[currentModel].vao_.bind();
   glDrawElements(GL_TRIANGLES, models[currentModel].vertsToDraw, GL_UNSIGNED_INT, 0);
 	models[currentModel].vao_.release();
-  shaderProgram_.release();
+  models[currentModel].shaderProgram_.release();
 }

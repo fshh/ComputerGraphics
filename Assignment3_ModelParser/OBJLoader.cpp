@@ -12,7 +12,7 @@ bool OBJLoader::isOBJFile(std::string fileName) {
 	return false;
 }
 
-Model& OBJLoader::loadOBJ(std::string fileName, QOpenGLShaderProgram* shader) {
+Model& OBJLoader::loadOBJ(std::string fileName) {
 	QVector<GLfloat> verts;
 	QVector<GLfloat> norms;
 	QVector<QVector<GLuint>> faces;
@@ -44,51 +44,73 @@ Model& OBJLoader::loadOBJ(std::string fileName, QOpenGLShaderProgram* shader) {
 			// handle faces
 			if (std::strcmp(token, "f") == 0) {
 				// create new list for this face (since faces can have any number of vertices)
-				QVector<GLuint> buffer;
+				QVector<GLuint> ibuffer;
 
 				QVector<char*> temp;
 
 				// append values to the list
-				while (std::strtok(nullptr, " \n")) {
+				token = std::strtok(nullptr, " \n");
+				while (token) {
 					// add string to temp buffer
 					temp.append(token);
+					token = std::strtok(nullptr, " \n");
 				}
 
 				for (size_t ii = 0; ii < temp.size(); ++ii) {
 					char* subtoken = std::strtok(temp[ii], "//");
 					while (subtoken) {
-						buffer.append((GLfloat)std::atoi(subtoken) - 1);
+						ibuffer.append((GLuint)std::atoi(subtoken) - 1);
 						subtoken = std::strtok(nullptr, "//");
 					}
 				}
 
 				// add buffer to list of faces
-				faces.append(buffer);
+				faces.append(ibuffer);
 			}
 			// handle verts/norms
 			else {
-				QVector<GLfloat> buffer;
+				QVector<GLfloat>* vbuffer;
 
 				// select appropriate buffer
 				if (std::strcmp(token, "v") == 0) {
-					buffer = std::move(verts);
+					vbuffer = &verts;
 				}
 				else if (std::strcmp(token, "vn") == 0) {
-					buffer = std::move(norms);
+					vbuffer = &norms;
 				}
 
 				// process values
-				while (std::strtok(nullptr, " \n")) {
+				token = std::strtok(nullptr, " \n");
+				while (token) {
 					// save vertex data
-					buffer.append((GLfloat)std::atoi(token) - 1);
+					vbuffer->append((GLfloat)std::atof(token));
+					token = std::strtok(nullptr, " \n");
 				}
 			}
-
-			delete[] cstr;
+		}
+	}
+	
+	qDebug() << "Verts";
+	for (size_t ii = 0; ii < verts.size() / 3; ++ii) {
+		size_t index = ii * 3;
+		qDebug() << verts[index] << verts[index + 1] << verts[index + 2];
+	}
+	
+	qDebug() << "Norms";
+	for (size_t ii = 0; ii < norms.size() / 3; ++ii) {
+		size_t index = ii * 3;
+		qDebug() << norms[index]<< norms[index + 1] << norms[index + 2];
+	}
+	
+	qDebug() << "Faces";
+	for (QVector<GLuint>& face : faces) {
+		for (size_t ii = 0; ii < face.size() / 6; ++ii) {
+			size_t index = ii * 6;
+			qDebug() << face[index] << face[index + 1] << face[index + 2] << face[index + 3] << face[index + 4] << face[index + 5];
 		}
 	}
 
-	Model model(verts, norms, faces, shader);
+	Model model(verts, norms, faces);
 
 	// close the file
 	infile.close();
