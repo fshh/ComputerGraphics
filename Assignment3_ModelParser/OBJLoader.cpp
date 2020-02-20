@@ -20,7 +20,7 @@ Model* OBJLoader::loadOBJ(std::string fileName) {
 	// check that we have been given a .obj file
 	if (!isOBJFile(fileName)) {
 		qDebug() << "ERROR: Expected a .obj file for constructing a model";
-		return;
+		return nullptr;
 	}
 
 	// open the file
