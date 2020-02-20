@@ -4,6 +4,11 @@
 
 *TODO*: Please edit the following information in your assignment
 
+**NOTES** 
+* Make sure you run the executable in the base "Assignment3_ModelParser/" folder so the .obj files are accessed correctly.
+* Like the other person who posted about it on Piazza, I don't believe my Mac supports the GL_LINE glPolygonMode, so it looks completely broken for me, but hopefully it works for you!
+
+
 * Name and partners name(At most 1 partner for this Assignment): 
   * Andrew Knollmeyer
 * How many hours did it take you to complete this Assignment? 
