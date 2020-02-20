@@ -73,8 +73,6 @@ void BasicWidget::initializeGL()
 	for (std::string& file : modelFiles) {
 		models.append(OBJLoader::loadOBJ(file));
 	}
-	
-	glFrontFace(GL_CW);
 
   glViewport(0, 0, width(), height());
 }
