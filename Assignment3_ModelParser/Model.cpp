@@ -9,17 +9,14 @@ QString Model::vertexShaderString() const
 	"#version 330\n"
 	"layout(location = 0) in vec3 position;\n"
   "layout(location = 1) in vec3 normal;\n"
-	"out vec3 surfNormal;\n"
-	//"out float intensity;\n"
+	//"out vec3 surfNormal;\n"
 	"uniform mat4 modelToWorld;\n"
 	"uniform mat4 worldToCamera;\n"
 	"uniform mat4 cameraToView;\n"
-	//"uniform vec3 lightDir = vec3(0.2, -1, 0.2);\n"
 	"void main()\n"
 	"{\n"
 	"  gl_Position = cameraToView * worldToCamera * modelToWorld * vec4(position, 1.0);\n"
-	"  surfNormal = normal;\n"
-	//"  intensity = dot(lightDir, normal);\n"
+	//"  surfNormal = normal;\n"
   "}\n";
   return str;
 }
@@ -28,31 +25,13 @@ QString Model::fragmentShaderString() const
 {
   QString str =
 	"#version 330\n"
-  "in vec3 surfNormal;\n"
+  //"in vec3 surfNormal;\n"
 	"out vec4 color;\n"
 	"void main()\n"
 	"{\n"
-	"  color = vec4(surfNormal, 1.0);\n"
+	//"  color = vec4(surfNormal, 1.0);\n"
+	"  color = vec4(1.0f, 0.37f, 0.33f, 1.0f);\n"
 	"}\n";
-	/*
-  QString str =
-	"#version 330\n"
-  "in float intensity;\n"
-	"out vec4 color;\n"
-	"void main()\n"
-	"{\n"
-	"  vec4 vertColor;\n"
-	"	 if (intensity > 0.95)\n"
-	"    vertColor = vec4(1.0, 0.5, 0.5, 1.0);\n"
-	"  else if (intensity > 0.5)\n"
-	"    vertColor = vec4(0.6, 0.3, 0.3, 1.0);\n"
-	"  else if (intensity > 0.25)\n"
-	"    vertColor = vec4(0.4, 0.2, 0.2, 1.0);\n"
-	"  else\n"
-	"    vertColor = vec4(0.2, 0.1, 0.1, 1.0);\n"
-	"  color = vertColor;\n"
-	"}\n";
-	 */
   return str;
 }
 
