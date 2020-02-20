@@ -3,19 +3,14 @@
 
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), vbo_(QOpenGLBuffer::VertexBuffer), cbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer)
+BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
   setFocusPolicy(Qt::StrongFocus);
+	models = QVector<Model>();
 }
 
 BasicWidget::~BasicWidget()
 {
-  vbo_.release();
-  vbo_.destroy();
-  ibo_.release();
-  ibo_.destroy();
-  cbo_.release();
-  cbo_.destroy();
   vao_.release();
   vao_.destroy();
 }
@@ -26,14 +21,15 @@ QString BasicWidget::vertexShaderString() const
 {
   QString str =
 	"#version 330\n"
+	"uniform vec3 lightDir = vec3(0.2, -1, 0.2);\n"
 	"layout(location = 0) in vec3 position;\n"
-    "layout(location = 1) in vec4 color;\n"
-    "out vec4 vertColor;\n"
+  "layout(location = 1) in vec3 normal;\n"
+	"varying float intensity;\n"
 	"void main()\n"
 	"{\n"
 	"  gl_Position = vec4(position, 1.0);\n"
-    "  vertColor = color;\n"
-    "}\n";
+	"  intensity = dot(lightDir, normal)"
+  "}\n";
   return str;
 }
 
@@ -41,10 +37,19 @@ QString BasicWidget::fragmentShaderString() const
 {
   QString str =
 	"#version 330\n"
-    "in vec4 vertColor;\n"
+  "varying float intensity;\n"
 	"out vec4 color;\n"
 	"void main()\n"
 	"{\n"
+	"  vec4 vertColor;\n"
+	"	 if (intensity > 0.95)\n"
+	"    vertColor = vec4(1.0, 0.5, 0.5, 1.0);\n"
+	"  else if (intensity > 0.5)\n"
+	"    vertColor = vec4(0.6, 0.3, 0.3, 1.0);\n"
+	"  else if (intensity > 0.25)\n"
+	"    vertColor = vec4(0.4, 0.2, 0.2, 1.0);\n"
+	"  else\n"
+	"    vertColor = vec4(0.2, 0.1, 0.1, 1.0);\n"
 	"  color = vertColor;\n"
 	"}\n";
   return str;
@@ -75,12 +80,22 @@ void BasicWidget::createShader()
 void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 {
   // TODO: Handle key events here.
-  if (keyEvent->key() == Qt::Key_Left) {
-    qDebug() << "Left Arrow Pressed";
+  if (keyEvent->key() == Qt::Key_1) {
+    qDebug() << "1 Pressed";
+		currentModel = 0;
     update();  // We call update after we handle a key press to trigger a redraw when we are ready
-  } else if (keyEvent->key() == Qt::Key_Right) {
-    qDebug() << "Right Arrow Pressed";
+  } else if (keyEvent->key() == Qt::Key_2) {
+    qDebug() << "2 Pressed";
+		currentModel = 1;
     update();  // We call update after we handle a key press to trigger a redraw when we are ready
+	}
+	else if (keyEvent->key() == Qt::Key_Q) {
+		qDebug() << "Q Pressed";
+		update();  // We call update after we handle a key press to trigger a redraw when we are ready
+	}
+	else if (keyEvent->key() == Qt::Key_W) {
+		qDebug() << "W Pressed";
+		update();  // We call update after we handle a key press to trigger a redraw when we are ready
   } else {
     qDebug() << "You Pressed an unsupported Key!";
   }
@@ -101,9 +116,17 @@ void BasicWidget::initializeGL()
 
   // Set up our shaders.
   createShader();
+
+	// declare our model names
+	QVector<std::string> modelFiles{
+		"./objects/monkey.obj",
+		"./objects/bunny.obj"
+	};
 	
-	// TODO: load obj data
-	
+	// load obj data
+	for (std::string& file : modelFiles) {
+		models.append(OBJLoader::loadOBJ(file, &shaderProgram_));
+	}
 
   glViewport(0, 0, width(), height());
 }
@@ -121,10 +144,9 @@ void BasicWidget::paintGL()
   glClearColor(0.f, 0.f, 0.f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // TODO:  render.
   shaderProgram_.bind();
-  vao_.bind();
-  glDrawElements(GL_TRIANGLES, ??, GL_UNSIGNED_INT, 0);
-  vao_.release();
+  models[currentModel].vao_.bind();
+  glDrawElements(GL_TRIANGLES, models[currentModel].vertsToDraw, GL_UNSIGNED_INT, 0);
+	models[currentModel].vao_.release();
   shaderProgram_.release();
 }
