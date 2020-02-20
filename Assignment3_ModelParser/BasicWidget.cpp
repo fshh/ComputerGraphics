@@ -6,18 +6,25 @@
 BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent)
 {
   setFocusPolicy(Qt::StrongFocus);
-	models = QVector<Model>();
+	models = QVector<Model*>();
+	
+	// set up matrices
+	worldToCamera_.setToIdentity();
+	worldToCamera_.translate(0.0f, 0.0f, 0.0f);
+	projection_.perspective(90.0f, 800.0f/600.0f, 0.1f, 1000.0f);
 }
 
 BasicWidget::~BasicWidget()
 {
+	for (Model* model : models) {
+		delete model;
+	}
 }
 
 ///////////////////////////////////////////////////////////////////////
 // Protected
 void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 {
-  // TODO: Handle key events here.
   if (keyEvent->key() == Qt::Key_1) {
     qDebug() << "1 Pressed";
 		currentModel = 0;
@@ -29,10 +36,13 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 	}
 	else if (keyEvent->key() == Qt::Key_Q) {
 		qDebug() << "Q Pressed";
-		update();  // We call update after we handle a key press to trigger a redraw when we are ready
+		close();
+		((QWidget*)parent())->close();
 	}
 	else if (keyEvent->key() == Qt::Key_W) {
 		qDebug() << "W Pressed";
+		wireframe = !wireframe;
+		//glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 		update();  // We call update after we handle a key press to trigger a redraw when we are ready
   } else {
     qDebug() << "You Pressed an unsupported Key!";
@@ -54,7 +64,9 @@ void BasicWidget::initializeGL()
 
 	// declare our model names
 	QVector<std::string> modelFiles{
-		"./objects/cube.obj"
+		//"./objects/cube.obj"
+		"./objects/monkey_centered.obj",
+		"./objects/bunny_centered.obj"
 	};
 	
 	// load obj data
@@ -62,9 +74,7 @@ void BasicWidget::initializeGL()
 		models.append(OBJLoader::loadOBJ(file));
 	}
 	
-	for (Model& model : models) {
-		qDebug() << model.vertsToDraw;
-	}
+	glFrontFace(GL_CW);
 
   glViewport(0, 0, width(), height());
 }
@@ -81,10 +91,18 @@ void BasicWidget::paintGL()
 
   glClearColor(0.f, 0.f, 0.f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	Model* model = models[currentModel];
 
-  models[currentModel].shaderProgram_.bind();
-  models[currentModel].vao_.bind();
-  glDrawElements(GL_TRIANGLES, models[currentModel].vertsToDraw, GL_UNSIGNED_INT, 0);
-	models[currentModel].vao_.release();
-  models[currentModel].shaderProgram_.release();
+  model->shaderProgram_.bind();
+	int u_modelToWorld = model->shaderProgram_.uniformLocation("modelToWorld");
+	int u_worldToCamera = model->shaderProgram_.uniformLocation("worldToCamera");
+	int u_cameraToView = model->shaderProgram_.uniformLocation("cameraToView");
+	model->shaderProgram_.setUniformValue(u_worldToCamera, worldToCamera_);
+	model->shaderProgram_.setUniformValue(u_cameraToView, projection_);
+  model->vao_.bind();
+	model->shaderProgram_.setUniformValue(u_modelToWorld, model->modelToWorld_);
+  glDrawElements(GL_TRIANGLES, model->vertsToDraw, GL_UNSIGNED_INT, 0);
+	model->vao_.release();
+  model->shaderProgram_.release();
 }

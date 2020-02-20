@@ -15,11 +15,13 @@ public:
 	size_t vertsToDraw;
 	QOpenGLVertexArrayObject vao_;
 	QOpenGLShaderProgram shaderProgram_;
+	QMatrix4x4 modelToWorld_;
 
 private:
 	QString vertexShaderString() const;
 	QString fragmentShaderString() const;
 	void createShader();
+	void initMatrix();
 	
 	Model(size_t _vertsToDraw, QOpenGLBuffer _vbo_, QOpenGLBuffer _ibo_);
 	QOpenGLBuffer vbo_;

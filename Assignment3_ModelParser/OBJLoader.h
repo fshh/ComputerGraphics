@@ -7,7 +7,7 @@ class OBJLoader {
 private:
 	static bool isOBJFile(std::string fileName);
 public:
-	static Model& loadOBJ(std::string fileName);
+	static Model* loadOBJ(std::string fileName);
 };
 
 #endif

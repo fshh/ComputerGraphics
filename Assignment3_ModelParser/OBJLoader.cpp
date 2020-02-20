@@ -12,7 +12,7 @@ bool OBJLoader::isOBJFile(std::string fileName) {
 	return false;
 }
 
-Model& OBJLoader::loadOBJ(std::string fileName) {
+Model* OBJLoader::loadOBJ(std::string fileName) {
 	QVector<GLfloat> verts;
 	QVector<GLfloat> norms;
 	QVector<QVector<GLuint>> faces;
@@ -110,7 +110,7 @@ Model& OBJLoader::loadOBJ(std::string fileName) {
 		}
 	}
 
-	Model model(verts, norms, faces);
+	Model* model = new Model(verts, norms, faces);
 
 	// close the file
 	infile.close();

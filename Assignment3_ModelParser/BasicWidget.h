@@ -13,8 +13,13 @@ class BasicWidget : public QOpenGLWidget, protected QOpenGLFunctions
   Q_OBJECT
 
 private:
-	QVector<Model> models;
+	QVector<Model*> models;
 	size_t currentModel = 0;
+	
+	QMatrix4x4 worldToCamera_;
+	QMatrix4x4 projection_;
+	
+	bool wireframe = false;
 
 protected:
   // Required interaction overrides
