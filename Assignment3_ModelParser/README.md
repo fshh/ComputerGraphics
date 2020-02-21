@@ -6,7 +6,7 @@
 
 **NOTES** 
 * Make sure you run the executable in the base "Assignment3_ModelParser/" folder so the .obj files are accessed correctly.
-* Like the other person who posted about it on Piazza, I don't believe my Mac supports the GL_LINE glPolygonMode, so it looks completely broken for me, but hopefully it works for you!
+* ~Like the other person who posted about it on Piazza, I don't believe my Mac supports the GL_LINE glPolygonMode, so it looks completely broken for me, but hopefully it works for you!~ I fixed the wireframe drawing according to the answer posted on Piazza, although it was only posted on Feb 21st. If this later submission with fixed wireframes gives me a lower score, I'd rather have the higher one with broken wireframes please.
 
 
 * Name and partners name(At most 1 partner for this Assignment): 

@@ -42,6 +42,7 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 	else if (keyEvent->key() == Qt::Key_W) {
 		qDebug() << "W Pressed";
 		wireframe = !wireframe;
+		makeCurrent();
 		glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 		update();  // We call update after we handle a key press to trigger a redraw when we are ready
   } else {
