@@ -25,6 +25,7 @@ QString BasicWidget::vertexShaderString() const
     "#version 330\n"
     "layout(location = 0) in vec3 position;\n"
     "layout(location = 1) in vec4 color;\n"
+		"uniform mat4 MVP;\n"
 
     "uniform mat4 modelMatrix;\n"
     "uniform mat4 viewMatrix;\n"
@@ -34,9 +35,7 @@ QString BasicWidget::vertexShaderString() const
 
     "void main()\n"
     "{\n"
-    // TODO: gl_Position must be updated!
-    "  gl_Position = vec4(position, 1.0);\n"
-    // END TODO
+    "  gl_Position = MVP * vec4(position, 1.0);\n"
     "  vertColor = color;\n"
     "}\n";
   return str;
@@ -154,12 +153,10 @@ void BasicWidget::initializeGL()
 	vbo_.write(0, verts, vertBytes);
 	vbo_.write(vertBytes, colors, colorBytes);
 
-  // TODO:  Generate our index buffer
   ibo_.create();
   ibo_.setUsagePattern(QOpenGLBuffer::StaticDraw);
   ibo_.bind();
   ibo_.allocate(idx, 3 * sizeof(GL_UNSIGNED_INT));
-  // ENDTODO
 
   // Create a VAO to keep track of things for us.
   vao_.create();
@@ -181,9 +178,22 @@ void BasicWidget::initializeGL()
 void BasicWidget::resizeGL(int w, int h)
 {
   glViewport(0, 0, w, h);
-  // TODO:  Set up the model, view, and projection matrices
-	QMatrix4x4 mvp = projection_ * view_ * model_;
-  // END TODO
+
+	// Set up projection
+	projection_ = QMatrix4x4();
+	float aspect = (float)w / (float)h;
+	//projection_.ortho(-1, 1, -1, 1.0f * aspect, -1, 10);
+	projection_.perspective(90.0f, aspect, 0.1f, 100.0f);
+	
+	// Set up view
+	view_ = QMatrix4x4();
+	view_.lookAt(
+	 QVector3D(0, 0, 1),	// Camera position
+	 QVector3D(0, 0, 0),	// Point to look at
+	 QVector3D(0, -1, 0));	// "up" direction
+	
+	// Set up model
+	model_ = QMatrix4x4(); // Model will be at origin
 }
 
 void BasicWidget::paintGL()
@@ -193,8 +203,12 @@ void BasicWidget::paintGL()
 
   glClearColor(0.f, 0.f, 0.f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+	
+	// create MVP matrix
+	QMatrix4x4 mvp = projection_ * view_ * model_;
+	
   shaderProgram_.bind();
+	shaderProgram_.setUniformValue(shaderProgram_.uniformLocation("MVP"), mvp);
   vao_.bind();
   glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_INT, 0);
   vao_.release();
