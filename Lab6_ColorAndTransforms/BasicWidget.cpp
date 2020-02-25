@@ -180,20 +180,20 @@ void BasicWidget::resizeGL(int w, int h)
   glViewport(0, 0, w, h);
 
 	// Set up projection
-	projection_ = QMatrix4x4();
+	projection_.setToIdentity();
 	float aspect = (float)w / (float)h;
 	//projection_.ortho(-1, 1, -1, 1.0f * aspect, -1, 10);
 	projection_.perspective(90.0f, aspect, 0.1f, 100.0f);
 	
 	// Set up view
-	view_ = QMatrix4x4();
+	view_.setToIdentity();
 	view_.lookAt(
 	 QVector3D(0, 0, 1),	// Camera position
 	 QVector3D(0, 0, 0),	// Point to look at
 	 QVector3D(0, -1, 0));	// "up" direction
 	
 	// Set up model
-	model_ = QMatrix4x4(); // Model will be at origin
+	model_.setToIdentity(); // Model will be at origin
 }
 
 void BasicWidget::paintGL()
