@@ -9,10 +9,11 @@ BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), logger_(this)
 
 BasicWidget::~BasicWidget()
 {
-    for (auto renderable : renderables_) {
-        delete renderable;
-    }
-    renderables_.clear();
+	makeCurrent();
+	for (auto renderable : renderables_) {
+		delete renderable;
+	}
+	renderables_.clear();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -36,45 +37,89 @@ void BasicWidget::initializeGL()
 {
   makeCurrent();
   initializeOpenGLFunctions();
-
+	
   qDebug() << QDir::currentPath();
-  QString texFile = "../../cat3.ppm";
-  QVector<QVector3D> pos;
-  QVector<QVector3D> norm;
-  QVector<QVector2D> texCoord;
-  QVector<unsigned int> idx;
-  pos << QVector3D(-0.8, -0.8, 0.0);
-  pos << QVector3D(0.8, -0.8, 0.0);
-  pos << QVector3D(-0.8, 0.8, 0.0);
-  pos << QVector3D(0.8, 0.8, 0.0);
-  // We don't actually use the normals right now, but this will be useful later!
-  norm << QVector3D(0.0, 0.0, 1.0);
-  norm << QVector3D(0.0, 0.0, 1.0);
-  norm << QVector3D(0.0, 0.0, 1.0);
-  norm << QVector3D(0.0, 0.0, 1.0);
-  // TODO:  Make sure to add texture coordinates to pass into the initialization of our renderable
-  idx << 0 << 1 << 2 << 2 << 1 << 3;
+	
+	// Quad 1
+	{
+		QString texFile = "../../cat3.ppm";
+		QVector<QVector3D> pos;
+		QVector<QVector3D> norm;
+		QVector<QVector2D> texCoord;
+		QVector<unsigned int> idx;
+		pos << QVector3D(-0.8, -0.8, 0.0);
+		pos << QVector3D(0.8, -0.8, 0.0);
+		pos << QVector3D(-0.8, 0.8, 0.0);
+		pos << QVector3D(0.8, 0.8, 0.0);
+		// We don't actually use the normals right now, but this will be useful later!
+		norm << QVector3D(0.0, 0.0, 1.0);
+		norm << QVector3D(0.0, 0.0, 1.0);
+		norm << QVector3D(0.0, 0.0, 1.0);
+		norm << QVector3D(0.0, 0.0, 1.0);
 
-  Renderable* ren = new Renderable();
-  ren->init(pos, norm, texCoord, idx, texFile);
-  renderables_.push_back(ren);
-  glViewport(0, 0, width(), height());
-  frameTimer_.start();
+		texCoord << QVector2D(0.0, 0.0);
+		texCoord << QVector2D(1.0, 0.0);
+		texCoord << QVector2D(0.0, 1.0);
+		texCoord << QVector2D(1.0, 1.0);
+		
+		idx << 0 << 1 << 2 << 2 << 1 << 3;
+
+		Renderable* ren = new Renderable();
+		ren->init(pos, norm, texCoord, idx, texFile);
+		renderables_.push_back(ren);
+		glViewport(0, 0, width(), height());
+		frameTimer_.start();
+	}
+	// Quad 2
+	{
+		QString texFile = "../../klein.png";
+		QVector<QVector3D> pos;
+		QVector<QVector3D> norm;
+		QVector<QVector2D> texCoord;
+		QVector<unsigned int> idx;
+		pos << QVector3D(-0.4, -0.4, 0.0);
+		pos << QVector3D(0.4, -0.4, 0.0);
+		pos << QVector3D(-0.4, 0.4, 0.0);
+		pos << QVector3D(0.4, 0.4, 0.0);
+		// We don't actually use the normals right now, but this will be useful later!
+		norm << QVector3D(0.0, 0.0, 1.0);
+		norm << QVector3D(0.0, 0.0, 1.0);
+		norm << QVector3D(0.0, 0.0, 1.0);
+		norm << QVector3D(0.0, 0.0, 1.0);
+
+		texCoord << QVector2D(0.0, 0.0);
+		texCoord << QVector2D(1.0, 0.0);
+		texCoord << QVector2D(0.0, 1.0);
+		texCoord << QVector2D(1.0, 1.0);
+		
+		idx << 0 << 1 << 2 << 2 << 1 << 3;
+
+		Renderable* ren = new Renderable();
+		ren->init(pos, norm, texCoord, idx, texFile);
+		QMatrix4x4 model;
+		model.translate(0.5, 0.5, 0);
+		ren->setModelMatrix(model);
+		renderables_.push_back(ren);
+		glViewport(0, 0, width(), height());
+		frameTimer_.start();
+	}
+	
+	
 }
 
 void BasicWidget::resizeGL(int w, int h)
 {
-    if (!logger_.isLogging()) {
-        logger_.initialize();
-        // Setup the logger for real-time messaging
-        connect(&logger_, &QOpenGLDebugLogger::messageLogged, [=]() {
-            const QList<QOpenGLDebugMessage> messages = logger_.loggedMessages();
-            for (auto msg : messages) {
-                qDebug() << msg;
-            }
-            });
-        logger_.startLogging();
-    }
+	if (!logger_.isLogging()) {
+		logger_.initialize();
+		// Setup the logger for real-time messaging
+		connect(&logger_, &QOpenGLDebugLogger::messageLogged, [=]() {
+			const QList<QOpenGLDebugMessage> messages = logger_.loggedMessages();
+			for (auto msg : messages) {
+				qDebug() << msg;
+			}
+		});
+		logger_.startLogging();
+	}
   glViewport(0, 0, w, h);
   view_.setToIdentity();
   view_.lookAt(QVector3D(0.0f, 0.0f, 2.0f),
