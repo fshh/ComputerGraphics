@@ -5,32 +5,31 @@
 
 QString Model::vertexShaderString() const
 {
-  QString str =
+	QString str =
 	"#version 330\n"
 	"layout(location = 0) in vec3 position;\n"
-  "layout(location = 1) in vec3 normal;\n"
-	//"out vec3 surfNormal;\n"
+	"layout(location = 1) in vec3 normal;\n"
+	"out vec3 surfNormal;\n"
 	"uniform mat4 modelToWorld;\n"
 	"uniform mat4 worldToCamera;\n"
 	"uniform mat4 cameraToView;\n"
 	"void main()\n"
 	"{\n"
 	"  gl_Position = cameraToView * worldToCamera * modelToWorld * vec4(position, 1.0);\n"
-	//"  surfNormal = normal;\n"
-  "}\n";
-  return str;
+	"  surfNormal = normal;\n"
+	"}\n";
+	return str;
 }
 
 QString Model::fragmentShaderString() const
 {
   QString str =
 	"#version 330\n"
-  //"in vec3 surfNormal;\n"
+  "in vec3 surfNormal;\n"
 	"out vec4 color;\n"
 	"void main()\n"
 	"{\n"
-	//"  color = vec4(surfNormal, 1.0);\n"
-	"  color = vec4(1.0f, 0.37f, 0.33f, 1.0f);\n"
+	"  color = vec4(surfNormal, 1.0);\n"
 	"}\n";
   return str;
 }
@@ -93,9 +92,7 @@ Model::Model(QVector<GLfloat>& verts, QVector<GLfloat>& norms, QVector<QVector<G
 			// store index of pos and norm data
 			GLuint ipos = face[ii * 2] * 3;
 			GLuint inorm = face[ii * 2 + 1] * 3;
-			
-			//qDebug() << ipos << inorm;
-			
+						
 			QVector<GLfloat> vert;
 			
 			// append pos data
