@@ -90,6 +90,7 @@ Model* OBJLoader::loadOBJ(std::string fileName) {
 		}
 	}
 	
+	/*
 	qDebug() << "Verts";
 	for (size_t ii = 0; ii < verts.size() / 3; ++ii) {
 		size_t index = ii * 3;
@@ -109,6 +110,7 @@ Model* OBJLoader::loadOBJ(std::string fileName) {
 			qDebug() << face[index] << face[index + 1] << face[index + 2] << face[index + 3] << face[index + 4] << face[index + 5];
 		}
 	}
+	*/
 
 	Model* model = new Model(verts, norms, faces);
 

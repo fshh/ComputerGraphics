@@ -121,6 +121,7 @@ Model::Model(QVector<GLfloat>& verts, QVector<GLfloat>& norms, QVector<QVector<G
 		}
 	}
 	
+	/*
 	qDebug() << "vbuffer";
 	for (size_t ii = 0; ii < vbuffer.size() / 6; ++ii) {
 		size_t index = ii * 6;
@@ -131,6 +132,7 @@ Model::Model(QVector<GLfloat>& verts, QVector<GLfloat>& norms, QVector<QVector<G
 	for (size_t ii = 0; ii < ibuffer.size() / 3; ++ii) {
 		qDebug() << ibuffer[ii * 3] << ibuffer[ii * 3 + 1] << ibuffer[ii * 3 + 2];
 	}
+	*/
 
 	// Temporary bind of our shader.
 	shaderProgram_.bind();
