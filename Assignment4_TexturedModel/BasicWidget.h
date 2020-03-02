@@ -24,7 +24,7 @@ private:
 
   QOpenGLDebugLogger logger_;
 	
-	bool wireframe_;
+	DrawMode drawMode_;
 	int currObj_;
 
 protected:
@@ -35,6 +35,8 @@ protected:
   void initializeGL() override;
   void resizeGL(int w, int h) override;
   void paintGL() override;
+
+	void setDrawMode(DrawMode drawMode);
   
 public:
   BasicWidget(QWidget* parent=nullptr);

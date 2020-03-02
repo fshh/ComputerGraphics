@@ -3,7 +3,7 @@
 
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), logger_(this), wireframe_(false), currObj_(0)
+BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0)
 {
   setFocusPolicy(Qt::StrongFocus);
 }
@@ -21,6 +21,28 @@ BasicWidget::~BasicWidget()
 // Privates
 ///////////////////////////////////////////////////////////////////////
 // Protected
+QString drawModeToString(DrawMode drawMode) {
+	switch (drawMode) {
+		case DrawMode::DEFAULT:
+			return "Default";
+		case DrawMode::WIREFRAME:
+			return "Wireframe";
+		case DrawMode::TEX_DEBUG:
+			return "Texture debug";
+		case DrawMode::NORM_DEBUG:
+			return "Normal debug";
+	}
+}
+
+void BasicWidget::setDrawMode(DrawMode drawMode) {
+	// If draw mode is already set to given mode, set to default instead
+	drawMode_ = drawMode == drawMode_ ? DrawMode::DEFAULT : drawMode;
+	qDebug() << "Draw mode:" << drawModeToString(drawMode_);
+	makeCurrent();
+	glPolygonMode(GL_FRONT_AND_BACK, drawMode_ == DrawMode::WIREFRAME ? GL_LINE : GL_FILL);
+	update();
+}
+
 void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 {
   // Handle key events here.
@@ -28,22 +50,29 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
     qDebug() << "Left Arrow Pressed";
 		currObj_ = (renderables_.size() + (currObj_ - 1)) % renderables_.size();
     update();  // We call update after we handle a key press to trigger a redraw when we are ready
-  } else if (keyEvent->key() == Qt::Key_Right) {
+  } 
+	else if (keyEvent->key() == Qt::Key_Right) {
     qDebug() << "Right Arrow Pressed";
 		currObj_ = (currObj_ + 1) % renderables_.size();
     update();  // We call update after we handle a key press to trigger a redraw when we are ready
-  } else if (keyEvent->key() == Qt::Key_Q) {
+  } 
+	else if (keyEvent->key() == Qt::Key_Q) {
 		qDebug() << "Quitting...";
 		close();
 		((QWidget*)parent())->close();
 	}
+	else if (keyEvent->key() == Qt::Key_D) {
+		setDrawMode(DrawMode::DEFAULT);
+	}
 	else if (keyEvent->key() == Qt::Key_W) {
-		wireframe_ = !wireframe_;
-		qDebug() << "Wireframe" << (wireframe_ ? "enabled" : "disabled");
-		makeCurrent();
-		glPolygonMode(GL_FRONT_AND_BACK, wireframe_ ? GL_LINE : GL_FILL);
-		update();  // We call update after we handle a key press to trigger a redraw when we are ready
+		setDrawMode(DrawMode::WIREFRAME);
   }
+	else if (keyEvent->key() == Qt::Key_T) {
+		setDrawMode(DrawMode::TEX_DEBUG);
+	}
+	else if (keyEvent->key() == Qt::Key_N) {
+		setDrawMode(DrawMode::NORM_DEBUG);
+	}
 	else {
     qDebug() << "You Pressed an unsupported Key!";
   }
@@ -104,7 +133,7 @@ void BasicWidget::resizeGL(int w, int h)
       QVector3D(0.0f, 0.0f, 0.0f),
       QVector3D(0.0f, 1.0f, 0.0f));
   projection_.setToIdentity();
-  projection_.perspective(70.f, (float)w/(float)h, 0.001, 1000.0);
+  projection_.perspective(70.f, (float)w/(float)h, 0.001f, 1000.0f);
   glViewport(0, 0, w, h);
 }
 
@@ -121,7 +150,7 @@ void BasicWidget::paintGL()
   for (auto renderable : renderables_) {
       renderable->update(msSinceRestart);
   }
-	renderables_[currObj_]->draw(view_, projection_, wireframe_);
+	renderables_[currObj_]->draw(view_, projection_, drawMode_);
 	
   update();
 }

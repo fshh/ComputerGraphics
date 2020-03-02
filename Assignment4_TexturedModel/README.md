@@ -4,7 +4,14 @@
 <img align="right" src="./media/house.jpg" width="400px" alt="picture">
 
 
-**Notes**: Press left and right arrow keys to cycle through models. W for wireframe mode, Q to quit.
+**Notes:** 
+* Press left and right arrow keys to cycle through models. 
+* Press Q to quit.
+* Press W to enter *wireframe* mode. Press again to return to default.
+* Press T to enter *texture debug* mode. Press again to return to default.
+* Press N to enter *normal debug* mode. Press again to return to default.
+* Press D to return to *default* drawing mode.
+
 
 * Name and partners name(At most 1 partner for this Assignment): 
   * Andrew Knollmeyer

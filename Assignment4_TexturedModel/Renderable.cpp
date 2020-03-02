@@ -3,7 +3,7 @@
 #include <QtGui>
 #include <QtOpenGL>
 
-Renderable::Renderable() : vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), texture_(QOpenGLTexture::Target2D), numTris_(0), vertexSize_(0), rotationAxis_(0.0, 1.0, 0.0), rotationSpeed_(0.25)
+Renderable::Renderable() : vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), texture_(QOpenGLTexture::Target2D), numTris_(0), vertexSize_(0), rotationAxis_(0.0, 1.0, 0.0), rotationSpeed_(0.2)
 {
 	rotationAngle_ = 0.0;
 }
@@ -162,7 +162,7 @@ void Renderable::update(const qint64 msSinceLastFrame)
 	}
 }
 
-void Renderable::draw(const QMatrix4x4& view, const QMatrix4x4& projection, const bool wireframe)
+void Renderable::draw(const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode)
 {
 	// Create our model matrix.
 	QMatrix4x4 rotMatrix;
@@ -178,7 +178,7 @@ void Renderable::draw(const QMatrix4x4& view, const QMatrix4x4& projection, cons
 	shader_.setUniformValue("modelMatrix", modelMat);
 	shader_.setUniformValue("viewMatrix", view);
 	shader_.setUniformValue("projectionMatrix", projection);
-	shader_.setUniformValue("wireframe", wireframe);
+	shader_.setUniformValue("drawMode", (int)drawMode);
 
 	vao_.bind();
 	texture_.bind();

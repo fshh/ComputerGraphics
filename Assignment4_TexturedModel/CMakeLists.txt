@@ -21,7 +21,6 @@ set(srcs
   BasicWidget.cpp
   Renderable.cpp
   OBJLoader.cpp
-  Model.cpp
   main.cpp
 )
 

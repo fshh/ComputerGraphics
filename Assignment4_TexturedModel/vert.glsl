@@ -10,6 +10,8 @@ uniform mat4 projectionMatrix;
 
 // We define a new output vec2 for our texture coorinates.
 out vec2 texCoords;
+// Output for normal
+out vec3 norm;
 
 void main()
 {
@@ -17,4 +19,6 @@ void main()
 	gl_Position = projectionMatrix*viewMatrix*modelMatrix*vec4(position, 1.0);
 	// And we map our texture coordinates as appropriate
 	texCoords = textureCoords;
+	// Pass normal to frag
+	norm = normal;
 }

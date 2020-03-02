@@ -4,6 +4,13 @@
 #include <QtGui>
 #include <QtOpenGL>
 
+enum class DrawMode {
+	DEFAULT = 0,
+	WIREFRAME = 1,
+	TEX_DEBUG = 2,
+	NORM_DEBUG = 3
+};
+
 class Renderable
 {
 protected:
@@ -37,7 +44,7 @@ public:
 
 	virtual void init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, const QString& textureFile);
 	virtual void update(const qint64 msSinceLastFrame);
-	virtual void draw(const QMatrix4x4& view, const QMatrix4x4& projection, const bool wireframe);
+	virtual void draw(const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode);
 
 	void setModelMatrix(const QMatrix4x4& transform);
 	void setRotationAxis(const QVector3D& axis);
