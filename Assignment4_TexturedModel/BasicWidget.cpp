@@ -1,9 +1,22 @@
 #include "BasicWidget.h"
 #include "OBJLoader.h"
 
+static QString drawModeToString(DrawMode drawMode) {
+	switch (drawMode) {
+	case DrawMode::DEFAULT:
+		return "Default";
+	case DrawMode::WIREFRAME:
+		return "Wireframe";
+	case DrawMode::TEX_DEBUG:
+		return "Texture debug";
+	case DrawMode::NORM_DEBUG:
+		return "Normal debug";
+	}
+}
+
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0)
+BasicWidget::BasicWidget(QList<QDir> objectFiles, QWidget* parent) : QOpenGLWidget(parent), objectFiles_(objectFiles), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0)
 {
   setFocusPolicy(Qt::StrongFocus);
 }
@@ -21,17 +34,11 @@ BasicWidget::~BasicWidget()
 // Privates
 ///////////////////////////////////////////////////////////////////////
 // Protected
-QString drawModeToString(DrawMode drawMode) {
-	switch (drawMode) {
-		case DrawMode::DEFAULT:
-			return "Default";
-		case DrawMode::WIREFRAME:
-			return "Wireframe";
-		case DrawMode::TEX_DEBUG:
-			return "Texture debug";
-		case DrawMode::NORM_DEBUG:
-			return "Normal debug";
-	}
+void BasicWidget::quit(QString message, int exitCode) {
+	qDebug() << "Quitting:" << message;
+	close();
+	((QWidget*)parent())->close();
+	exit(exitCode);
 }
 
 void BasicWidget::setDrawMode(DrawMode drawMode) {
@@ -46,37 +53,38 @@ void BasicWidget::setDrawMode(DrawMode drawMode) {
 void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 {
   // Handle key events here.
-  if (keyEvent->key() == Qt::Key_Left) {
-    qDebug() << "Left Arrow Pressed";
-		currObj_ = (renderables_.size() + (currObj_ - 1)) % renderables_.size();
-    update();  // We call update after we handle a key press to trigger a redraw when we are ready
-  } 
-	else if (keyEvent->key() == Qt::Key_Right) {
-    qDebug() << "Right Arrow Pressed";
-		currObj_ = (currObj_ + 1) % renderables_.size();
-    update();  // We call update after we handle a key press to trigger a redraw when we are ready
-  } 
-	else if (keyEvent->key() == Qt::Key_Q) {
-		qDebug() << "Quitting...";
-		close();
-		((QWidget*)parent())->close();
+	switch (keyEvent->key()) {
+		case Qt::Key_Left:
+			qDebug() << "Left Arrow Pressed";
+			currObj_ = (renderables_.size() + (currObj_ - 1)) % renderables_.size();
+			update();  // We call update after we handle a key press to trigger a redraw when we are ready
+			break;
+		case Qt::Key_Right:
+			qDebug() << "Right Arrow Pressed";
+			currObj_ = (renderables_.size() + (currObj_ + 1)) % renderables_.size();
+			update();  // We call update after we handle a key press to trigger a redraw when we are ready
+			break;
+		case Qt::Key_Q:
+			quit("Manual quit", 0);
+			break;
+		case Qt::Key_D:
+			setDrawMode(DrawMode::DEFAULT);
+			break;
+		case Qt::Key_W:
+			setDrawMode(DrawMode::WIREFRAME);
+			break;
+		case Qt::Key_T:
+			setDrawMode(DrawMode::TEX_DEBUG);
+			break;
+		case Qt::Key_N:
+			setDrawMode(DrawMode::NORM_DEBUG);
+			break;
+		default:
+			qDebug() << "You Pressed an unsupported Key!";
+			break;
 	}
-	else if (keyEvent->key() == Qt::Key_D) {
-		setDrawMode(DrawMode::DEFAULT);
-	}
-	else if (keyEvent->key() == Qt::Key_W) {
-		setDrawMode(DrawMode::WIREFRAME);
-  }
-	else if (keyEvent->key() == Qt::Key_T) {
-		setDrawMode(DrawMode::TEX_DEBUG);
-	}
-	else if (keyEvent->key() == Qt::Key_N) {
-		setDrawMode(DrawMode::NORM_DEBUG);
-	}
-	else {
-    qDebug() << "You Pressed an unsupported Key!";
-  }
 }
+
 void BasicWidget::initializeGL()
 {
   makeCurrent();
@@ -85,28 +93,36 @@ void BasicWidget::initializeGL()
 	qDebug() << "Current path:";
   qDebug() << QDir::currentPath();
 	
-	// Find objects dir
-	QDir dir = QDir::current();
-	while (!dir.exists("objects")) {
-		dir.cdUp();
+	// Declare object files if none are given
+	if (objectFiles_.isEmpty()) {
+		// Find objects dir
+		QDir dir = QDir::current();
+		while (!dir.exists("objects")) {
+			dir.cdUp();
+		}
+		dir.cd("objects");
+
+		objectFiles_ = {
+			dir.filePath(QDir("house/house_obj.obj").path()),
+			dir.filePath(QDir("windmill/windmill.obj").path()),
+			dir.filePath(QDir("chapel/chapel_obj.obj").path()),
+			dir.filePath(QDir("capsule/capsule.obj").path())
+		};
 	}
-	dir.cd("objects");
-	
-	// Declare object files
-	QList<QDir> objs = {
-		QDir("house/house_obj.obj"),
-		QDir("windmill/windmill.obj"),
-		QDir("chapel/chapel_obj.obj"),
-		QDir("capsule/capsule.obj")
-	};
 	
 	// Load objects
 	qDebug() << "Loaded objects:";
-	for (QDir& obj : objs) {
-		QString path = dir.filePath(obj.path());
-		qDebug() << path;
+	for (QDir& obj : objectFiles_) {
+		QString path = obj.path();
 		Renderable* ren = OBJLoader::loadOBJ(path);
-		renderables_.push_back(ren);
+		if (ren) {
+			qDebug() << path;
+			renderables_.push_back(ren);
+		}
+	}
+
+	if (renderables_.isEmpty()) {
+		quit("No objects loaded correctly", 1);
 	}
 	
 	// Prepare for render
@@ -147,10 +163,13 @@ void BasicWidget::paintGL()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// update all renderables, but only draw the selected one
-  for (auto renderable : renderables_) {
-      renderable->update(msSinceRestart);
+	for (int ii = 0; ii < renderables_.size(); ++ii) {
+		Renderable* renderable = renderables_[ii];
+		renderable->update(msSinceRestart);
+		if (ii == currObj_) {
+			renderable->draw(view_, projection_, drawMode_);
+		}
   }
-	renderables_[currObj_]->draw(view_, projection_, drawMode_);
 	
   update();
 }

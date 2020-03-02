@@ -24,6 +24,7 @@ private:
 
   QOpenGLDebugLogger logger_;
 	
+	QList<QDir> objectFiles_;
 	DrawMode drawMode_;
 	int currObj_;
 
@@ -36,10 +37,11 @@ protected:
   void resizeGL(int w, int h) override;
   void paintGL() override;
 
+	void quit(QString message, int exitCode);
 	void setDrawMode(DrawMode drawMode);
   
 public:
-  BasicWidget(QWidget* parent=nullptr);
+  BasicWidget(QList<QDir> objectFiles, QWidget* parent=nullptr);
   virtual ~BasicWidget();
   
   // Make sure we have some size that makes sense.

@@ -11,7 +11,7 @@ class App : public QMainWindow
   Q_OBJECT
 
 public:
-  App(QWidget* parent=0);
+  App(int argc, char** argv, QWidget* parent=0);
   virtual ~App();
   
 signals:
@@ -19,5 +19,5 @@ signals:
 public slots:
 
 private:
-  void buildGui();
+  void buildGui(QList<QDir> objectFiles);
 };

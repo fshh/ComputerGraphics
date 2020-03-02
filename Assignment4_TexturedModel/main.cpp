@@ -20,7 +20,7 @@ int main(int argc, char** argv) {
   fmt.setProfile(QSurfaceFormat::CoreProfile);
   QSurfaceFormat::setDefaultFormat(fmt);
 
-  App app;
+  App app(argc, argv);
   app.show();
   return QApplication::exec();
 }

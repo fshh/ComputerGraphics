@@ -1,16 +1,22 @@
 #include "App.h"
-
 #include "BasicWidget.h"
 
-App::App(QWidget* parent) : QMainWindow(parent)
+#include <iostream>
+
+App::App(int argc, char** argv, QWidget* parent) : QMainWindow(parent)
 {
-  buildGui();
+	QList<QDir> objectFiles;
+	for (int ii = 1; ii < argc; ++ii) {
+		objectFiles << QDir(argv[ii]);
+	}
+
+  buildGui(objectFiles);
 }
 
 App::~App()
 {}
 
-void App::buildGui()
+void App::buildGui(QList<QDir> objectFiles)
 {
   // A simple menubar.
   QMenuBar* menu = menuBar();
@@ -18,6 +24,6 @@ void App::buildGui()
   QAction* exit = file->addAction("Quit", [this]() {close();});
 
   // Our basic widget.
-  BasicWidget* widget = new BasicWidget(this);
+  BasicWidget* widget = new BasicWidget(objectFiles, this);
   setCentralWidget(widget);
 }
