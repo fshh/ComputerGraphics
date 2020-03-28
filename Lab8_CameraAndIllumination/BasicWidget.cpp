@@ -60,10 +60,12 @@ void BasicWidget::mouseMoveEvent(QMouseEvent* mouseEvent)
   QPoint delta = mouseEvent->pos() - lastMouseLoc_;
   lastMouseLoc_ = mouseEvent->pos();
   if (mouseAction_ == Rotate) {
-    // TODO:  Implement rotating the camera
+		float rotateScale = 0.1f;
+		QPoint scaledDelta = delta * rotateScale;
+		camera_.rotateAboutFocus(delta.x(), delta.y());
   } else if (mouseAction_ == Zoom) {
-    // TODO:  Implement zoom by moving the camera
-    // Zooming is moving along the gaze direction by some amount.
+		float zoomScale = 0.1f;
+		camera_.zoomCamera(delta.y() * zoomScale);
   } 
   update();
 }
@@ -79,7 +81,6 @@ void BasicWidget::initializeGL()
   initializeOpenGLFunctions();
 
   qDebug() << QDir::currentPath();
-  // TODO:  You may have to change these paths.
   QString brickTex = "../../brick.ppm";
   QString grassTex = "../../grass.ppm";
 
@@ -154,7 +155,6 @@ void BasicWidget::paintGL()
 
   for (auto renderable : renderables_) {
       renderable->update(msSinceRestart);
-      // TODO:  Understand that the camera is now governing the view and projection matrices
       renderable->draw(world_, camera_.getViewMatrix(), camera_.getProjectionMatrix());
   }
   update();
