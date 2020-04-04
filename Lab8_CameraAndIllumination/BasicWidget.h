@@ -6,6 +6,8 @@
 
 #include "Renderable.h"
 #include "Camera.h"
+#include "PointLight.h"
+#include <memory>
 
 /**
  * This is just a basic OpenGL widget that will allow a change of background color.
@@ -17,6 +19,7 @@ class BasicWidget : public QOpenGLWidget, protected QOpenGLFunctions
 private:
   QMatrix4x4 world_;
   Camera camera_;
+	QList<std::shared_ptr<PointLight>> lights_;
   
   QElapsedTimer frameTimer_;
 

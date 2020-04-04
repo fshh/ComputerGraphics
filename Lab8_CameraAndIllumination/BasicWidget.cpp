@@ -83,9 +83,23 @@ void BasicWidget::initializeGL()
   qDebug() << QDir::currentPath();
   QString brickTex = "../../brick.ppm";
   QString grassTex = "../../grass.ppm";
-
+	
+	std::shared_ptr<PointLight> red = std::make_shared<PointLight>(
+		QVector3D(1.0f, 0.0f, 0.0f),
+		QVector3D(0.5f, 0.5f, 0.0f));
+	 
+	std::shared_ptr<PointLight> green = std::make_shared<PointLight>(
+		QVector3D(0.0f, 1.0f, 0.0f),
+		QVector3D(0.5f, 0.5f, -2.0f));
+		
+	std::shared_ptr<PointLight> blue = std::make_shared<PointLight>(
+		QVector3D(0.0f, 0.0f, 1.0f),
+		QVector3D(0.5f, 0.5f, -4.0f));
+	 
+	lights_ << red << green << blue;
+	
   UnitQuad* backWall = new UnitQuad();
-  backWall->init(brickTex);
+  backWall->init(brickTex, lights_);
   QMatrix4x4 backXform;
   backXform.setToIdentity();
   backXform.scale(1.0, 1.0, -1.0);
@@ -93,7 +107,7 @@ void BasicWidget::initializeGL()
   renderables_.push_back(backWall);
 
   UnitQuad* rightWall = new UnitQuad();
-  rightWall->init(brickTex);
+  rightWall->init(brickTex, lights_);
   QMatrix4x4 rightXform;
   rightXform.setToIdentity();
   rightXform.rotate(90.0, 0.0, 1.0, 0.0);
@@ -101,7 +115,7 @@ void BasicWidget::initializeGL()
   renderables_.push_back(rightWall);
 
   UnitQuad* leftWall = new UnitQuad();
-  leftWall->init(brickTex);
+  leftWall->init(brickTex, lights_);
   QMatrix4x4 leftXform;
   leftXform.setToIdentity();
   leftXform.translate(1.0, 0.0, -1.0);
@@ -110,7 +124,7 @@ void BasicWidget::initializeGL()
   renderables_.push_back(leftWall);
 
   UnitQuad* floor = new UnitQuad();
-  floor->init(grassTex);
+  floor->init(grassTex, lights_);
   QMatrix4x4 floorXform;
   floorXform.setToIdentity();
   floorXform.translate(-0.5, 0.0, 0.5);
@@ -152,6 +166,10 @@ void BasicWidget::paintGL()
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   glEnable(GL_DEPTH_TEST);
+	
+	for (auto light : lights_) {
+		light->update(msSinceRestart);
+	}
 
   for (auto renderable : renderables_) {
       renderable->update(msSinceRestart);

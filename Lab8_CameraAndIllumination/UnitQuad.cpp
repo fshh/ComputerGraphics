@@ -1,12 +1,12 @@
 #include "UnitQuad.h"
 
-UnitQuad::UnitQuad() : lightPos_(0.5f, 0.5f, -2.0f), sign_(1.0f)
+UnitQuad::UnitQuad() : sign_(1.0f)
 {}
 
 UnitQuad::~UnitQuad()
 {}
 
-void UnitQuad::init(const QString& textureFile)
+void UnitQuad::init(const QString& textureFile, QList<std::shared_ptr<PointLight>>& lights)
 {
 	// The unit quad goes from 0.0 to 1.0 in each dimension.
 	QVector<QVector3D> pos;
@@ -30,32 +30,29 @@ void UnitQuad::init(const QString& textureFile)
     texCoord << QVector2D(1.0, 1.0);
     idx << 0 << 1 << 2 << 2 << 1 << 3;
     Renderable::init(pos, norm, texCoord, idx, textureFile);
+	
+	lights_ = lights;
 }
 
 void UnitQuad::update(const qint64 msSinceLastFrame)
 {
-    // This is where we want to maintain our light.
-    float secs = (float)msSinceLastFrame / 1000.0f;
-    float angle = secs * 180.0f;
-    // Rotate our light around the scene
-    QMatrix4x4 rot;
-    rot.setToIdentity();
-    rot.rotate(angle, 0.0, 1.0, 0.0);
-    QVector3D newPos = rot * lightPos_;
-    lightPos_ = newPos;
-    // Because we aren't doing any occlusion, the lighting on the walls looks
-    // super wonky.  Instead, just move the light on the z axis.
-    newPos.setX(0.5);
-
-    shader_.bind();
-    shader_.setUniformValue("pointLights[0].color", 1.0f, 1.0f, 1.0f);
-    shader_.setUniformValue("pointLights[0].position", newPos);
-    shader_.setUniformValue("pointLights[0].ambientIntensity", 0.5f);
-    shader_.setUniformValue("pointLights[0].specularIntensity", 0.5f);
-
-    shader_.setUniformValue("pointLights[0].constant", 1.0f);
-    shader_.setUniformValue("pointLights[0].linear", 0.09f);
-    shader_.setUniformValue("pointLights[0].quadratic", 0.032f);
-
-    shader_.release();
+	shader_.bind();
+	for (int ii = 0; ii < lights_.size(); ii++)
+	{
+		std::shared_ptr<PointLight> light = lights_[ii];
+		QVector3D lightPos = light->position();
+		lightPos.setX(0.5);
+		// Because we aren't doing any occlusion, the lighting on the walls looks
+		// super wonky.  Instead, just move the light on the z axis.
+		
+		std::string prefix = "pointLights[" + std::to_string(ii) + "].";
+		shader_.setUniformValue((prefix + "color").c_str(), light->color());
+		shader_.setUniformValue((prefix + "position").c_str(), lightPos);
+		shader_.setUniformValue((prefix + "ambientIntensity").c_str(), light->ambientIntensity());
+		shader_.setUniformValue((prefix + "specularIntensity").c_str(), light->specularIntensity());
+		shader_.setUniformValue((prefix + "constant").c_str(), light->constant());
+		shader_.setUniformValue((prefix + "linear").c_str(), light->linear());
+		shader_.setUniformValue((prefix + "quadratic").c_str(), light->quadratic());
+	}
+	shader_.release();
 }
