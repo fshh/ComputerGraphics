@@ -46,7 +46,6 @@ void UnitQuad::update(const qint64 msSinceLastFrame)
     // Because we aren't doing any occlusion, the lighting on the walls looks
     // super wonky.  Instead, just move the light on the z axis.
     newPos.setX(0.5);
-    // TODO:  Understand how the light gets initialized/setup.
     shader_.bind();
     shader_.setUniformValue("pointLights[0].color", 1.0f, 1.0f, 1.0f);
     shader_.setUniformValue("pointLights[0].position", newPos);

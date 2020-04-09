@@ -29,6 +29,8 @@ private:
   QPoint lastMouseLoc_;
   MouseControl mouseAction_;
 
+	DrawMode drawMode_;
+
 protected:
   // Required interaction overrides
   void keyReleaseEvent(QKeyEvent* keyEvent) override;
@@ -40,6 +42,9 @@ protected:
   void initializeGL() override;
   void resizeGL(int w, int h) override;
   void paintGL() override;
+
+	void quit(QString message, int exitCode);
+	void setDrawMode(DrawMode drawMode);
   
 public:
   BasicWidget(QWidget* parent=nullptr);

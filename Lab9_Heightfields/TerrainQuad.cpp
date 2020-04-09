@@ -18,14 +18,18 @@ void TerrainQuad::init(const QString& textureFile)
     // We need to figure out how many rows and columns we want!
     const unsigned int numRows = 300;
     const unsigned int numCols = 300;
-    float rowStep = 1.0f / (float)numRows;
-    float colStep = 1.0f / (float)numCols;
+    float rowStep = 1.0f / float(numRows + 1);
+    float colStep = 1.0f / float(numCols + 1);
 
     QVector<unsigned int> stripIdx;
     QVector3D normal(0.0, 1.0, 0.0);
 
     // TODO:  You may need to change the path here.
     QImage heightImage("../../terrain2.ppm");
+		float scale = 255 * 5;
+
+		int imgW = heightImage.width();
+		int imgH = heightImage.height();
 
     unsigned int curIdx = 0;
     // Populate our grid
@@ -34,9 +38,8 @@ void TerrainQuad::init(const QString& textureFile)
             // compute our top coordinate
             float z = r * rowStep;
             float x = c * colStep;
-            // TODO - Before changing anything in the shaders, we can get heightmapping
-            // to work by changing this y coordinate.  Implement this now to create a heightmap!
-            float y = 0.0;
+            // Get height from heightmap
+            float y = (float)heightImage.pixelColor(x * imgW, z * imgH).red() / scale;
             // Be explicit about our texture coords
             float u = z;
             float v = x;
@@ -118,9 +121,12 @@ void TerrainQuad::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QM
     // the GPU shader implementation.
 //    shader_.setUniformValue("tex", GL_TEXTURE0);
 //    shader_.setUniformValue("colorTex", GL_TEXTURE1 - GL_TEXTURE0);
-    for (int s = 0; s < numStrips_; ++s) {
-        // TODO:  Draw the correct number of triangle strips using glDrawElements
-    }
+
+		for (unsigned int s = 0; s < numStrips_; ++s) {
+			unsigned int offset = s * numIdxPerStrip_ * sizeof(GL_UNSIGNED_INT);
+			glDrawElements(GL_TRIANGLE_STRIP, numIdxPerStrip_, GL_UNSIGNED_INT, (GLvoid*)offset);
+		}
+
 //    heightTexture_.release();
     texture_.release();
 //    f.glActiveTexture(GL_TEXTURE0);
