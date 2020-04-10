@@ -11,10 +11,13 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
+ - 1 hour
 - Did you collaborate with any other students/TAs/Professors?
+ - No
 - Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+  - https://learnopengl.com/Advanced-OpenGL/Framebuffers
+  - https://en.wikipedia.org/wiki/Kernel_(image_processing)
+  - https://aishack.in/tutorials/image-convolution-examples/
 - (Optional) What was your favorite part of the lab?
 - (Optional) How would you improve the lab?
 
