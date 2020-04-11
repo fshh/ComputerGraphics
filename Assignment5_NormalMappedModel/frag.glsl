@@ -8,12 +8,14 @@ in vec3 norm;
 out vec4 fragColor;
 
 uniform int drawMode;
-uniform sampler2D tex;
+uniform bool hasNormalMap;
+uniform sampler2D diffuseMap;
+uniform sampler2D normalMap;
 
 void main() {
 	// Default mode
 	if (drawMode == 0) {
-		fragColor = texture(tex, texCoords);
+		fragColor = texture(diffuseMap, texCoords);
 	} 
 	// Wireframe mode
 	else if (drawMode == 1) {
@@ -23,7 +25,12 @@ void main() {
 	else if (drawMode == 2) {
 		fragColor = vec4(texCoords, 0.0, 1.0);
 	}
+	// Normal debug mode
 	else if (drawMode == 3) {
-		fragColor = vec4(norm * 0.5 + 0.5, 1.0);
+		if (hasNormalMap) {
+			fragColor = texture(normalMap, texCoords);
+		} else {
+			fragColor = vec4(norm * 0.5 + 0.5, 1.0);
+		}
 	}
 }

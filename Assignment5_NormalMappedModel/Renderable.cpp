@@ -1,17 +1,22 @@
 #include "Renderable.h"
 
+#include <QtCore>
 #include <QtGui>
 #include <QtOpenGL>
+#include <QOpenGLFunctions_3_3_core>
 
-Renderable::Renderable() : vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), texture_(QOpenGLTexture::Target2D), numTris_(0), vertexSize_(0), rotationAxis_(0.0, 1.0, 0.0), rotationSpeed_(0.2)
+Renderable::Renderable() : vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), diffuseMap_(QOpenGLTexture::Target2D), normalMap_(QOpenGLTexture::Target2D), numTris_(0), vertexSize_(0), rotationAxis_(0.0, 1.0, 0.0), rotationSpeed_(0.2)
 {
 	rotationAngle_ = 0.0;
 }
 
 Renderable::~Renderable()
 {
-	if (texture_.isCreated()) {
-		texture_.destroy();
+	if (diffuseMap_.isCreated()) {
+		diffuseMap_.destroy();
+	}
+	if (normalMap_.isCreated()) {
+		normalMap_.destroy();
 	}
 	if (vbo_.isCreated()) {
 		vbo_.destroy();
@@ -42,12 +47,20 @@ void Renderable::createShaders()
 	}
 }
 
-void Renderable::init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, const QString& textureFile)
+void Renderable::init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, 
+	const QString& diffuseMap, const QString& normalMap)
 {
+	initializeOpenGLFunctions();
+
 	// Set our model matrix to identity
 	modelMatrix_.setToIdentity();
-	// Load our texture.
-	texture_.setData(QImage(textureFile).mirrored(true, true));
+	// Load diffuse map
+	diffuseMap_.setData(QImage(diffuseMap).mirrored(true, true));
+
+	// Load normal map
+	if (!normalMap.isEmpty()) {
+		normalMap_.setData(QImage(normalMap).mirrored(true, true));
+	}
 	
 	// create final data buffers
 	QVector<float> vbuffer;
@@ -180,10 +193,28 @@ void Renderable::draw(const QMatrix4x4& view, const QMatrix4x4& projection, cons
 	shader_.setUniformValue("projectionMatrix", projection);
 	shader_.setUniformValue("drawMode", (int)drawMode);
 
+	bool hasNormalMap = normalMap_.isCreated();
+	shader_.setUniformValue("hasNormalMap", hasNormalMap);
+
 	vao_.bind();
-	texture_.bind();
+
+	glActiveTexture(GL_TEXTURE0);
+	diffuseMap_.bind();
+	shader_.setUniformValue("diffuseMap", GL_TEXTURE0);
+
+	if (hasNormalMap) {
+		glActiveTexture(GL_TEXTURE1);
+		normalMap_.bind();
+		shader_.setUniformValue("normalMap", GL_TEXTURE1 - GL_TEXTURE0);
+	}
+
 	glDrawElements(GL_TRIANGLES, numTris_ * 3, GL_UNSIGNED_INT, 0);
-	texture_.release();
+
+	diffuseMap_.release();
+	if (hasNormalMap) {
+		normalMap_.release();
+	}
+
 	vao_.release();
 	shader_.release();
 }

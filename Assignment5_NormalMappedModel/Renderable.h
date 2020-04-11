@@ -11,15 +11,17 @@ enum class DrawMode {
 	NORM_DEBUG = 3
 };
 
-class Renderable
+class Renderable: protected QOpenGLFunctions
 {
 protected:
 	// Each renderable has its own model matrix
 	QMatrix4x4 modelMatrix_;
 	// For now, we have only one shader per object
 	QOpenGLShaderProgram shader_;
-	// For now, we have only one texture per object
-	QOpenGLTexture texture_;
+	// Diffuse map for the object
+	QOpenGLTexture diffuseMap_;
+	// Normal map for the object
+	QOpenGLTexture normalMap_;
 	// For now, we have a single unified buffer per object
 	QOpenGLBuffer vbo_;
 	// Make sure we have an index buffer.
@@ -42,7 +44,8 @@ public:
 	Renderable();
 	virtual ~Renderable();
 
-	virtual void init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, const QString& textureFile);
+	virtual void init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, 
+		const QString& diffuseMap, const QString& normalMap);
 	virtual void update(const qint64 msSinceLastFrame);
 	virtual void draw(const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode);
 

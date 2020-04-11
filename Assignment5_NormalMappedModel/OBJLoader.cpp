@@ -56,7 +56,8 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 	}
 	
 	// prepare textureFile
-	QString textureFile = "";
+	QString diffuseMap = "";
+	QString normalMap = "";
 	
 	// prepare buffers
 	QVector<QVector3D> positions;
@@ -84,12 +85,17 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 			
 			// scan file for map_Kd
 			QTextStream mtlIn(&mtl);
-			while (!mtlIn.atEnd() && textureFile == "") {
+			while (!mtlIn.atEnd() && (diffuseMap == "" || normalMap == "")) {
 				QStringList line = mtlIn.readLine().split(' ');
 				if (line[0] == "map_Kd") {
-					textureFile = dir.filePath(line[1]);
+					diffuseMap = dir.filePath(line[1]);
+				}
+				if (line[0] == "map_Bump") {
+					normalMap = dir.filePath(line[1]);
 				}
 			}
+
+			if (normalMap.isEmpty()) { qDebug() << "No normal map found in mtl file " + mtl.fileName(); }
 		}
 		else if (lineType == "v") {
 			loadPosition(line, positions);
@@ -128,7 +134,7 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 	*/
 	
 	Renderable* ren = new Renderable();
-	ren->init(positions, normals, texCoords, faces, textureFile);
+	ren->init(positions, normals, texCoords, faces, diffuseMap, normalMap);
 	
 	return ren;
 }
