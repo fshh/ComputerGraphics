@@ -22,6 +22,11 @@ public:
 	void setPosition(const QVector3D& position);
 	QVector3D position() const;
 	void translateCamera(const QVector3D& delta);
+	void zoomCamera(const float zoomDistance);
+
+	// Rotate our camera
+	void rotateAboutFocus(const float yaw, const float pitch);
+	void rotateInPlace(const float yaw, const float pitch);
 
 	// Move our gaze
 	void setGazeVector(const QVector3D& gaze);

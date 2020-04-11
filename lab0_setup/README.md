@@ -9,12 +9,15 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
+1 hour
 - Did you collaborate with any other students/TAs/Professors?
+Collaborated with professor to get the environment set up
 - Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+N/A
 - (Optional) What was your favorite part of the lab?
+Seeing the red screen pop up!
 - (Optional) How would you improve the lab?
+More detailed instructions on setting up the development environment (how to use CMake GUI, relationship between CMake and XCode/VS, explaining that Qt is just a library and not an IDE, etc.)
 
 ## Logistics
 

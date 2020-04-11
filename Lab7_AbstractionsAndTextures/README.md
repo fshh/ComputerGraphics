@@ -11,10 +11,11 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
+  - 1 hr
 - Did you collaborate with any other students/TAs/Professors?
+  - No
 - Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+  - Qt docs
 - (Optional) What was your favorite part of the lab?
 - (Optional) How would you improve the lab?
 
@@ -40,9 +41,23 @@ During your co-ops, internships, and jobs you will often do a code review. Today
 
 Discuss with your partner the following:
 
-1. What are the advantages/disadvantages of the "Renderable" class?: *Add your answer here*
-2. Why do we call Renderable::draw(..) with the matrix info as parameters?: *Add your answer here*
-3. How you can move models in the scene?: *Add your answer here*
+1. What are the advantages/disadvantages of the "Renderable" class?:
+  - Advantages
+    - Can iterate over list of all renderables to update and draw
+    - Don't have to hardcode rendering process for each object we want to draw
+    - Encapsulates the rendering data for each object
+  - Disadvantages
+    - Can only render triangles
+    - Requires normals and texture 
+      - What if we want to render something that doesn't need these?
+      - Can't add other information
+2. Why do we call Renderable::draw(..) with the matrix info as parameters?:
+  - We need to get the MVP matrix to draw the object with the proper perspective in relation to the camera.
+  - Since each object has its own model matrix, we pass in the other two pieces of the MVP so each model can calculate their own MVP.
+3. How you can move models in the scene?:
+  - We can rotate it by calling update()
+    - Can adjust rotation with setRotationAxis() and setRotationSpeed()
+  - We can also transform it in multiple ways using setModelMatrix()
 
 ## Part 2 - Textures
 

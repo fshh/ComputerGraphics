@@ -4,15 +4,28 @@
 <img align="right" src="./media/house.jpg" width="400px" alt="picture">
 
 
-*TODO*: Please edit the following information in your assignment
+**Notes:**
+* Pass object files to the program like so: `./App "path/to/object1.obj" "path/to/object2.obj" ...`
+  * The program will notify you in the console 
+  * If no object files are provided, the program will automatically load in the house, windmill, chapel, and capsule.
+* Hotkeys
+  * Press left and right arrow keys to cycle through models. 
+  * Press Q to quit.
+  * Press W to enter *wireframe* mode. Press again to return to default.
+  * Press T to enter *texture debug* mode. Press again to return to default.
+  * Press N to enter *normal debug* mode. Press again to return to default.
+  * Press D to return to *default* drawing mode.
+
 
 * Name and partners name(At most 1 partner for this Assignment): 
+  * Andrew Knollmeyer
 * How many hours did it take you to complete this Assignment? 
+  * 6 hours
 * Did you collaborate or share ideas with any other students/TAs/Professors? 
+  * No
 * Did you use any external resources? 
-  * (tbd if any)
-  * (tbd if any)
-  * (tbd if any)
+  * Qt docs
+  * Previous labs/assignments
 * (Optional) What was the most interesting part of the assignment? How would you improve this assignment?
   
 ## Description

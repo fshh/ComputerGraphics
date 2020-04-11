@@ -11,12 +11,16 @@
 ## Modify this section
 
 - How many hours did it take you to complete this lab?
+1.5 hours.
 - Did you collaborate with any other students/TAs/Professors?
+No.
 - Did you use any external resources? (Cite them below)
-  - tbd
-  - tbd
+  - Triangle rasterizing algorithms: http://www.sunshine2k.de/coding/java/TriangleRasterization/TriangleRasterization.html
+  - Optimized sorting for small sets: http://pages.ripco.net/~jgamble/nw.html
 - (Optional) What was your favorite part of the lab?
+Learning about the different triangle rasterization algorithms.
 - (Optional) How would you improve the lab?
+Rather than give us an implementation for drawing a line, have us do that part ourselves as well, so we're familiar with the Bresenham algorithm and the challenges of drawing a rasterized line.
 
 ## Logistics
 

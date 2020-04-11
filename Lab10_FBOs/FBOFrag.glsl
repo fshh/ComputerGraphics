@@ -9,11 +9,38 @@ out vec4 fragColor;
 // Maintain our uniforms.
 uniform sampler2D FBOTex;              // our primary texture
 
+const float offset = 1.0 / 300.0;
+
 void main() {
-  // Set our output fragment color to whatever we pull from our input texture (Note, change 'tex' to whatever the sampler is named)
-  // The variable 'color' will now contain whatever would have been on screen if we were rendering directly.
-  vec3 color = texture(FBOTex, texCoords).rgb;
-  // We can now modify things a bit to provide some nice post-processing effects.
-  // TODO - Implement some type of post-processing effect here.
-  fragColor = vec4(color, 1.0);
+	vec2 offsets[9] = vec2[](
+		vec2(-offset, offset),	// top left
+		vec2(0.0f, offset),		// top middle
+		vec2(offset, offset),	// top right
+		vec2(-offset, 0.0f),	// middle left
+		vec2(0.0f, 0.0f),		// middle middle
+		vec2(offset, 0.0f),		// middle right
+		vec2(-offset, -offset),	// bottom left
+		vec2(0.0f, -offset),	// bottom middle
+		vec2(offset, -offset)	// bottom right
+	);
+
+	float kernel[9] = float[](
+		2,   2, 2,
+		2, -15, 2,
+		2,   2, 2
+	);
+
+	vec3 sampleTex[9];
+	for (int ii = 0; ii < 9; ii++) {
+		sampleTex[ii] = vec3(texture(FBOTex, texCoords.st + offsets[ii]));
+	}
+
+	vec3 col = vec3(0.0);
+	for (int ii = 0; ii < 9; ii++) {
+		col += sampleTex[ii] * kernel[ii];
+	}
+
+	fragColor = vec4(col, 1.0);
+
+	//fragColor = vec4(texture(FBOTex, texCoords).rgb, 1.0);
 }

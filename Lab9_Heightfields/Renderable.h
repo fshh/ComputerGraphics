@@ -4,6 +4,13 @@
 #include <QtGui>
 #include <QtOpenGL>
 
+enum class DrawMode {
+	DEFAULT = 0,
+	WIREFRAME = 1,
+	TEX_DEBUG = 2,
+	NORM_DEBUG = 3
+};
+
 class Renderable
 {
 protected:

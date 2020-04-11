@@ -29,12 +29,59 @@ struct PointLight {
 // Maintain our uniforms.
 uniform sampler2D tex;              // our primary texture
 uniform mat4 view;                  // we need the view matrix for highlights
-uniform PointLight pointLights[1];  // Our lights
+uniform PointLight pointLights[3];  // Our lights
 
 void main() {
-  // Set our output fragment color to whatever we pull from our input texture (Note, change 'tex' to whatever the sampler is named)
-  fragColor = texture(tex, texCoords);
+	vec3 lighting = vec3(0);
 
-  // TODO:  Implement some form of lighting.
-  
+	// Calculation to get camera position taken from this post: https://community.khronos.org/t/extracting-camera-position-from-a-modelview-matrix/68031
+	mat4 inverseView = inverse(view);
+	vec3 viewPos = vec3(inverseView[3] / inverseView[3][3]);
+	vec3 viewDir = normalize(viewPos - fragPos);
+	
+	for (int ii = 0; ii < pointLights.length(); ii++) {
+		PointLight light = pointLights[ii];
+		
+		// (1) Compute ambient light
+		vec3 ambient = light.ambientIntensity * light.color;
+
+		// (2) Compute diffuse light
+		// From our lights position and the fragment, we can get
+		// a vector indicating direction
+		// Note it is always good to 'normalize' values.
+		vec3 lightDir = normalize(light.position - fragPos);
+		// Now we can compute the diffuse light impact
+		float diffImpact = (max(dot(norm, lightDir), 0.0));
+		vec3 diffuse = diffImpact * light.color;
+
+		// (3) Compute specular light
+		vec3 reflectDir = reflect(-lightDir, norm);
+		float spec = pow(max(dot(viewDir, reflectDir), 0.0), 32);
+		vec3 specular = light.specularIntensity * spec * light.color;
+
+		// Calculate attenuation
+		float lightDistance = length(lightDir);
+		float attenuation = 1.0 / (light.constant +
+															 light.linear * lightDistance +
+															 light.quadratic * (lightDistance * lightDistance));
+		ambient *= attenuation;
+		diffuse *= attenuation;
+		specular *= attenuation;
+
+		// Final light intensity
+		lighting += ambient + diffuse + specular;
+	}
+	
+	// Store final texture color
+	vec3 diffuseColor = texture(tex, texCoords).rgb;
+	
+	// Final color
+	if (gl_FrontFacing)
+	{
+		fragColor = vec4(diffuseColor * lighting, 1.0);	
+	}
+	else
+	{
+		fragColor = vec4(diffuseColor * lighting, 1.0);	
+	}
 }

@@ -22,7 +22,7 @@ set(srcs
   main.cpp
 )
 
-add_executable(Lab
+add_executable(Lab0
   ${srcs}
 )
 

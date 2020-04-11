@@ -20,6 +20,8 @@ set(srcs
   BasicWidget.cpp
   Application.cpp
   main.cpp
+  Model.cpp
+  OBJLoader.cpp
 )
 
 add_executable(Assignment

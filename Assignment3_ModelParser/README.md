@@ -4,14 +4,23 @@
 
 *TODO*: Please edit the following information in your assignment
 
+**NOTES** 
+* Make sure you run the executable in the base "Assignment3_ModelParser/" folder so the .obj files are accessed correctly.
+* ~Like the other person who posted about it on Piazza, I don't believe my Mac supports the GL_LINE glPolygonMode, so it looks completely broken for me, but hopefully it works for you!~ I fixed the wireframe drawing according to the answer posted on Piazza, although it was only posted on Feb 21st. If this later submission with fixed wireframes gives me a lower score, I'd rather have the higher one with broken wireframes please.
+
+
 * Name and partners name(At most 1 partner for this Assignment): 
+  * Andrew Knollmeyer
 * How many hours did it take you to complete this Assignment? 
+  * 15
 * Did you collaborate or share ideas with any other students/TAs/Professors? 
+  * No
 * Did you use any external resources? 
-  * (tbd if any)
-  * (tbd if any)
-  * (tbd if any)
+  * Qt forums
+  * Previous labs
+  * https://www.trentreed.net/blog/qt5-opengl-part-3b-camera-control/ for help with MVP
 * (Optional) What was the most interesting part of the assignment? How would you improve this assignment?
+  * I would improve the assignment by making it less of a large leap from previous work we've been doing. Before this assignment we had not rendered any meshes, had not dealt with buffering vertex normals, had not been given a thorough explanation of GLSL shaders, etc. Not to mention the headache that comes from having to handle not just one 3D model but two. This assignment would have been a lot more enjoyable if we had gone at a slightly faster pace beforehand so that there was not a big gap between this work and previous work.
   
 ## Description
 
