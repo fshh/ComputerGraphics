@@ -24,6 +24,6 @@ void main() {
 		fragColor = vec4(texCoords, 0.0, 1.0);
 	}
 	else if (drawMode == 3) {
-		fragColor = vec4(norm, 1.0);
+		fragColor = vec4(norm * 0.5 + 0.5, 1.0);
 	}
 }
