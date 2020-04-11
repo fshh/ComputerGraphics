@@ -103,6 +103,7 @@ void BasicWidget::initializeGL()
 		dir.cd("objects");
 
 		objectFiles_ = {
+			dir.filePath(QDir("brickWall_lowRes/brickWall.obj").path()),
 			dir.filePath(QDir("house/house_obj.obj").path()),
 			dir.filePath(QDir("windmill/windmill.obj").path()),
 			dir.filePath(QDir("chapel/chapel_obj.obj").path()),
@@ -124,6 +125,17 @@ void BasicWidget::initializeGL()
 	if (renderables_.isEmpty()) {
 		quit("No objects loaded correctly", 1);
 	}
+
+	// Print instructions
+	qDebug() << "\n\nPass object files to the program like so : ./App \"path/to/object1.obj\" \"path/to/object2.obj\" ...";
+	qDebug() << "If no object files are provided, the program will automatically load in the brick wall, house, windmill, chapel, and capsule.";
+	qDebug() << "Hotkeys:\n" <<
+		"    Press left and right arrow keys to cycle through models.\n" <<
+		"    Press Q to quit.\n" <<
+		"    Press W to enter wireframe mode.Press again to return to default.\n" <<
+		"    Press T to enter texture debug mode.Press again to return to default.\n" <<
+		"    Press N to enter normal debug mode.Press again to return to default.\n" <<
+		"    Press D to return to default drawing mode.\n\n";
 	
 	// Prepare for render
 	glViewport(0, 0, width(), height());
