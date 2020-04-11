@@ -129,7 +129,8 @@ void BasicWidget::initializeGL()
 	// Print instructions
 	qDebug() << "\n\nPass object files to the program like so : ./App \"path/to/object1.obj\" \"path/to/object2.obj\" ...";
 	qDebug() << "If no object files are provided, the program will automatically load in the brick wall, house, windmill, chapel, and capsule.";
-	qDebug() << "Hotkeys:\n" <<
+	qDebug() << 
+		"Hotkeys:\n" <<
 		"    Press left and right arrow keys to cycle through models.\n" <<
 		"    Press Q to quit.\n" <<
 		"    Press W to enter wireframe mode.Press again to return to default.\n" <<
