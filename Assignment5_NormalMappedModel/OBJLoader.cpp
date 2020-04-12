@@ -1,40 +1,87 @@
 #include "OBJLoader.h"
 #include <fstream>
 
+Vec3 tangentFace(const Face& face, const QVector<Vertex>& vertices) {
+	Vertex v1 = vertices[face.a];
+	Vertex v2 = vertices[face.b];
+	Vertex v3 = vertices[face.c];
+
+	Vec3 edge1 = v2.position - v1.position;
+	Vec2 deltaUV1 = v2.texCoord - v1.texCoord;
+
+	Vec3 edge2 = v3.position - v1.position;
+	Vec2 deltaUV2 = v3.texCoord - v1.texCoord;
+
+	float f = 1.0f / (deltaUV1.u * deltaUV2.v - deltaUV2.u * deltaUV1.v);
+
+	Vec3 tangent;
+	tangent.x = f * (deltaUV2.v * edge1.x - deltaUV1.v * edge2.x);
+	tangent.y = f * (deltaUV2.v * edge1.y - deltaUV1.v * edge2.y);
+	tangent.z = f * (deltaUV2.v * edge1.z - deltaUV1.v * edge2.z);
+	tangent.normalize();
+
+	return tangent;
+}
+
 bool OBJLoader::isOBJFile(QString filePath) {
 	// find last occurence of a period in the string, so we can get the file extension
 	return filePath.contains(".obj");
 }
 
-void loadPosition(const QStringList& line, QVector<QVector3D>& positions) {
-	QVector3D position(line[1].toFloat(),
-										 line[2].toFloat(),
-										 line[3].toFloat());
-	positions << position;
+void loadMaterial(const QString& objFilePath, const QStringList& line, QString& diffuseMap, QString& normalMap) {
+	// get path to mtl file
+	QDir dir(objFilePath);
+	dir.cdUp();
+	QFile mtl(dir.filePath(line[1]));
+
+	// make sure file opened
+	if (!mtl.open(QIODevice::ReadOnly | QIODevice::Text)) {
+		qDebug() << "ERROR: Failed to open .mtl file" << objFilePath;
+		return;
+	}
+
+	// scan file for map_Kd
+	QTextStream mtlIn(&mtl);
+	while (!mtlIn.atEnd() && (diffuseMap == "" || normalMap == "")) {
+		QStringList mtlLine = mtlIn.readLine().split(' ');
+		if (mtlLine[0] == "map_Kd") {
+			diffuseMap = dir.filePath(mtlLine[1]);
+		}
+		if (mtlLine[0] == "map_Bump") {
+			normalMap = dir.filePath(mtlLine[1]);
+		}
+	}
+
+	if (normalMap.isEmpty()) { qDebug() << "No normal map found in mtl file " + mtl.fileName(); }
 }
 
-void loadNormal(const QStringList& line, QVector<QVector3D>& normals) {
-	QVector3D normal(line[1].toFloat(),
-										 line[2].toFloat(),
-										 line[3].toFloat());
-	normals << normal;
+Vec3 loadVec3(const QStringList& line) {
+	return Vec3(line[1].toFloat(), line[2].toFloat(), line[3].toFloat());
 }
 
-void loadTexCoords(const QStringList& line, QVector<QVector2D>& texCoords) {
-	QVector2D texCoord(line[1].toFloat(),
-										 line[2].toFloat());
-	texCoords << texCoord;
+Vec2 loadVec2(const QStringList& line) {
+	return Vec2(line[1].toFloat(), line[2].toFloat());
 }
 
-void loadFace(const QStringList& line, QVector<QVector<unsigned int>>& faces) {
-	QStringList::const_iterator it = line.begin() + 1; // skip "f" at beginning of line
-	QStringList::const_iterator end = line.end();
-	
-	// copy values into face
-	QVector<unsigned int> face;
-	for (; it != end; ++it) {
-		QStringList indices = it->split('/');
-		face << indices[0].toUInt() - 1 << indices[1].toUInt() - 1 << indices[2].toUInt() - 1;
+void loadFace(const QStringList& line, const QVector<Vec3>& positions, const QVector<Vec2>& texCoords, const QVector<Vec3>& normals, QVector<Vertex>& vertices, QVector<Face>& faces) {
+	Face face;
+	for (int ii = 1; ii < line.length(); ++ii) {
+		QString str = line[ii];
+		QStringList indices = str.split('/');
+
+		// Construct vertex and add to list of vertices if it is unique
+		Vertex vert;
+		vert.position = positions[indices[0].toUInt() - 1];
+		vert.texCoord = texCoords[indices[1].toUInt() - 1];
+		vert.normal = normals[indices[2].toUInt() - 1];
+		
+		// if vertex is new, give existing index to face. otherwise, add vertex to list and give index
+		int index = vertices.indexOf(vert);
+		if (index == -1) {
+			index = vertices.length();
+			vertices << vert;
+		}
+		face[ii - 1] = index;
 	}
 	
 	// add face to list
@@ -60,10 +107,12 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 	QString normalMap = "";
 	
 	// prepare buffers
-	QVector<QVector3D> positions;
-	QVector<QVector3D> normals;
-	QVector<QVector2D> texCoords;
-	QVector<QVector<unsigned int>> faces;
+	QVector<Vec3> positions;
+	QVector<Vec2> texCoords;
+	QVector<Vec3> normals;
+	QVector<Vec3> tangents;
+	QVector<Vertex> vertices;
+	QVector<Face> faces;
 	
 	// process the file
 	QTextStream in(&file);
@@ -72,69 +121,57 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 		
 		QString lineType = line[0];
 		if (lineType == "mtllib") {
-			// get path to mtl file
-			QDir dir(filePath);
-			dir.cdUp();
-			QFile mtl(dir.filePath(line[1]));
-			
-			// make sure file opened
-			if (!mtl.open(QIODevice::ReadOnly | QIODevice::Text)) {
-				qDebug() << "ERROR: Failed to open .mtl file" << filePath;
-				return nullptr;
-			}
-			
-			// scan file for map_Kd
-			QTextStream mtlIn(&mtl);
-			while (!mtlIn.atEnd() && (diffuseMap == "" || normalMap == "")) {
-				QStringList line = mtlIn.readLine().split(' ');
-				if (line[0] == "map_Kd") {
-					diffuseMap = dir.filePath(line[1]);
-				}
-				if (line[0] == "map_Bump") {
-					normalMap = dir.filePath(line[1]);
-				}
-			}
-
-			if (normalMap.isEmpty()) { qDebug() << "No normal map found in mtl file " + mtl.fileName(); }
+			loadMaterial(filePath, line, diffuseMap, normalMap);
 		}
 		else if (lineType == "v") {
-			loadPosition(line, positions);
+			positions << loadVec3(line);
 		}
 		else if (lineType == "vt") {
-			loadTexCoords(line, texCoords);
+			texCoords << loadVec2(line);
 		}
 		else if (lineType == "vn") {
-			loadNormal(line, normals);
+			normals << loadVec3(line);
 		}
 		else if (lineType == "f") {
-			loadFace(line, faces);
+			loadFace(line, positions, texCoords, normals, vertices, faces);
 		}
 	}
 	
 	/*
-	qDebug() << "Verts";
-	for (QVector3D& pos : positions) {
-		qDebug() << pos.x() << pos.y() << pos.z();
-	}
-	
-	qDebug() << "Norms";
-	for (QVector3D& norm : normals) {
-		qDebug() << norm.x() << norm.y() << norm.z();
+	qDebug() << "Positions";
+	for (Vec3& pos : positions) {
+		qDebug() << pos.x << pos.y << pos.z;
 	}
 	
 	qDebug() << "TexCoords";
-	for (QVector2D& texCoord : texCoords) {
-		qDebug() << texCoord.x() << texCoord.y();
+	for (Vec2& texCoord : texCoords) {
+		qDebug() << texCoord.u << texCoord.v;
+	}
+	
+	qDebug() << "Normals";
+	for (Vec3& norm : normals) {
+		qDebug() << norm.x << norm.y << norm.z;
+	}
+
+	qDebug() << "Vertices";
+	for (Vertex& vert : vertices) {
+		qDebug() << vert.position.x << vert.position.y << vert.position.z << vert.texCoord.u << vert.texCoord.v << vert.normal.x << vert.normal.y << vert.normal.z << vert.tangent.x << vert.tangent.y << vert.tangent.z;
 	}
 	
 	qDebug() << "Faces";
-	for (QVector<unsigned int>& face : faces) {
-		qDebug() << face[0] << face[1] << face[2] << face[3] << face[4] << face[5] << face[6] << face[7] << face[8];
+	for (Face& face : faces) {
+		qDebug() << face.a << face.b << face.c;
 	}
+
+	qDebug() << "Diffuse Map";
+	qDebug() << diffuseMap;
+
+	qDebug() << "Normal Map";
+	qDebug() << normalMap;
 	*/
 	
 	Renderable* ren = new Renderable();
-	ren->init(positions, normals, texCoords, faces, diffuseMap, normalMap);
+	ren->init(vertices, faces, diffuseMap, normalMap);
 	
 	return ren;
 }

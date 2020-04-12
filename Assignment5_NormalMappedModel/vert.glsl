@@ -1,17 +1,19 @@
 #version 330
+
+// ~~~~~~~~~~ INPUTS ~~~~~~~~~~
 layout(location = 0) in vec3 position;
 layout(location = 1) in vec2 textureCoords;
 layout(location = 2) in vec3 normal;
+layout(location = 3) in vec3 tangent;
 
-// We now have our camera system set up.
+// ~~~~~~~~~~ OUTPUTS ~~~~~~~~~~
+out vec2 texCoords;
+out vec3 norm;
+
+// ~~~~~~~~~~ UNIFORMS ~~~~~~~~~~
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
-
-// We define a new output vec2 for our texture coorinates.
-out vec2 texCoords;
-// Output for normal
-out vec3 norm;
 
 void main()
 {

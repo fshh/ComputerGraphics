@@ -103,11 +103,11 @@ void BasicWidget::initializeGL()
 		dir.cd("objects");
 
 		objectFiles_ = {
-			dir.filePath(QDir("brickWall_lowRes/brickWall.obj").path()),
+			dir.filePath(QDir("brickWall_lowRes/brickWall.obj").path())/*,
 			dir.filePath(QDir("house/house_obj.obj").path()),
 			dir.filePath(QDir("windmill/windmill.obj").path()),
 			dir.filePath(QDir("chapel/chapel_obj.obj").path()),
-			dir.filePath(QDir("capsule/capsule.obj").path())
+			dir.filePath(QDir("capsule/capsule.obj").path())*/
 		};
 	}
 	
@@ -127,7 +127,7 @@ void BasicWidget::initializeGL()
 	}
 
 	// Print instructions
-	qDebug() << "\n\nPass object files to the program like so : ./App \"path/to/object1.obj\" \"path/to/object2.obj\" ...";
+	qDebug() << "\n\nPass object files to the program like so: ./App \"path/to/object1.obj\" \"path/to/object2.obj\" ...";
 	qDebug() << "If no object files are provided, the program will automatically load in the brick wall, house, windmill, chapel, and capsule.";
 	qDebug() << 
 		"Hotkeys:\n" <<

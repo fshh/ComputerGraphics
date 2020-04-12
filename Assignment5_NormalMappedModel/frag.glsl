@@ -1,12 +1,13 @@
 #version 330
 
-// Take in our texture coordinate from our vertex shader
+// ~~~~~~~~~~ INPUTS ~~~~~~~~~~
 in vec2 texCoords;
-// Take in our normal
 in vec3 norm;
-// We always define a fragment color that we output.
+
+// ~~~~~~~~~~ OUTPUTS ~~~~~~~~~~
 out vec4 fragColor;
 
+// ~~~~~~~~~~ UNIFORMS ~~~~~~~~~~
 uniform int drawMode;
 uniform bool hasNormalMap;
 uniform sampler2D diffuseMap;

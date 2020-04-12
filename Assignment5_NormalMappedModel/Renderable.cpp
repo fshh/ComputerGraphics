@@ -47,8 +47,7 @@ void Renderable::createShaders()
 	}
 }
 
-void Renderable::init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, 
-	const QString& diffuseMap, const QString& normalMap)
+void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& faces, const QString& diffuseMap, const QString& normalMap)
 {
 	initializeOpenGLFunctions();
 
@@ -62,75 +61,11 @@ void Renderable::init(const QVector<QVector3D>& positions, const QVector<QVector
 		normalMap_.setData(QImage(normalMap).mirrored(true, true));
 	}
 	
-	// create final data buffers
-	QVector<float> vbuffer;
-	QVector<unsigned int> ibuffer;
-	QMap<QVector<float>, unsigned int> vmap;
-	int index = 0;
-	
-	// eliminate duplicate vertices and indexes
-	for (const QVector<unsigned int>& face : faces) {
-		for (unsigned int ii = 0; ii < face.size() / 3; ++ii) {
-			// store index of pos, tex, and norm data
-			unsigned int ipos = face[ii * 3];
-			unsigned int itex = face[ii * 3 + 1];
-			unsigned int inorm = face[ii * 3 + 2];
-						
-			// construct vertex
-			QVector<float> vert;
-			
-			// append pos data
-			QVector3D pos = positions[ipos];
-			vert << pos.x() << pos.y() << pos.z();
-			
-			// append tex data
-			QVector2D tex = texCoords[itex];
-			vert << tex.x() << tex.y();
-			
-			// append norm data
-			QVector3D norm = normals[inorm];
-			vert << norm.x() << norm.y() << norm.z();
-			
-			// if vertex already exists in map, append its index to ibuffer
-			if (vmap.contains(vert)) {
-				ibuffer.append(vmap[vert]);
-			}
-			// if vertex is new: append current index to ibuffer,
-			// add vertex to map, and copy data to vbuffer
-			else {
-				// append current index to ibuffer
-				ibuffer.append(index);
-				
-				// add to map
-				vmap.insert(vert, index);
-				index++;
-				
-				// copy data into vbuffer
-				vbuffer.append(vert);
-			}
-		}
-	}
-	
-	/*
-	qDebug() << "vbuffer";
-	for (size_t ii = 0; ii < vbuffer.size() / 8; ++ii) {
-		size_t index = ii * 8;
-		qDebug() << vbuffer[index] << vbuffer[index + 1] << vbuffer[index + 2] << vbuffer[index + 3] << vbuffer[index + 4] << vbuffer[index + 5] << vbuffer[index + 6] << vbuffer[index + 7];
-	}
-	
-	qDebug() << "ibuffer";
-	for (size_t ii = 0; ii < ibuffer.size() / 3; ++ii) {
-		size_t index = ii * 3;
-		qDebug() << ibuffer[index] << ibuffer[index + 1] << ibuffer[index + 2];
-	}
-	 */
-	
 	// set our vertex size
-	// 3 for pos, 2 for tex, 3 for normal
-	vertexSize_ = 3 + 2 + 3;
+	vertexSize_ = sizeof(Vertex);
 	
-	// set our number of trianges.
-	numTris_ = ibuffer.size() / 3;
+	// set our number of triangles.
+	numTris_ = faces.size();
 
 	// Setup our shader.
 	createShaders();
@@ -142,21 +77,27 @@ void Renderable::init(const QVector<QVector3D>& positions, const QVector<QVector
 	vbo_.create();
 	vbo_.setUsagePattern(QOpenGLBuffer::StaticDraw);
 	vbo_.bind();
-	vbo_.allocate(&vbuffer[0], vbuffer.size() * sizeof(float));
+	vbo_.allocate(&vertices[0], vertices.size() * vertexSize_);
 
 	// Create our index buffer
 	ibo_.create();
 	ibo_.bind();
 	ibo_.setUsagePattern(QOpenGLBuffer::StaticDraw);
-	ibo_.allocate(&ibuffer[0], ibuffer.size() * sizeof(unsigned int));
+	ibo_.allocate(&faces[0], faces.size() * sizeof(Face));
 
 	// Make sure we setup our shader inputs properly
+	// position
 	shader_.enableAttributeArray(0);
-	shader_.setAttributeBuffer(0, GL_FLOAT, 0, 3, vertexSize_ * sizeof(float));
+	shader_.setAttributeBuffer(0, GL_FLOAT, 0, 3, vertexSize_);
+	// texture coords
 	shader_.enableAttributeArray(1);
-	shader_.setAttributeBuffer(1, GL_FLOAT, 3 * sizeof(float), 2, vertexSize_ * sizeof(float));
+	shader_.setAttributeBuffer(1, GL_FLOAT, 3 * sizeof(float), 2, vertexSize_);
+	// normal
 	shader_.enableAttributeArray(2);
-	shader_.setAttributeBuffer(2, GL_FLOAT, 5 * sizeof(float), 3, vertexSize_ * sizeof(float));
+	shader_.setAttributeBuffer(2, GL_FLOAT, 5 * sizeof(float), 3, vertexSize_);
+	// tangent
+	shader_.enableAttributeArray(3);
+	shader_.setAttributeBuffer(3, GL_FLOAT, 8 * sizeof(float), 3, vertexSize_);
 
 	// Release our vao and THEN release our buffers.
 	vao_.release();

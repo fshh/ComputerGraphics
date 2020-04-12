@@ -3,6 +3,7 @@
 #include <QtCore>
 #include <QtGui>
 #include <QtOpenGL>
+#include "Structs.h"
 
 enum class DrawMode {
 	DEFAULT = 0,
@@ -44,8 +45,7 @@ public:
 	Renderable();
 	virtual ~Renderable();
 
-	virtual void init(const QVector<QVector3D>& positions, const QVector<QVector3D>& normals, const QVector<QVector2D>& texCoords, const QVector<QVector<unsigned int>>& faces, 
-		const QString& diffuseMap, const QString& normalMap);
+	virtual void init(const QVector<Vertex>& vertices, const QVector<Face>& faces, const QString& diffuseMap, const QString& normalMap);
 	virtual void update(const qint64 msSinceLastFrame);
 	virtual void draw(const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode);
 
