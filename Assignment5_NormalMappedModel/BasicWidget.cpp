@@ -103,11 +103,11 @@ void BasicWidget::initializeGL()
 		dir.cd("objects");
 
 		objectFiles_ = {
-			dir.filePath(QDir("brickWall_lowRes/brickWall.obj").path())/*,
+			dir.filePath(QDir("brickWall_lowRes/brickWall.obj").path()),
 			dir.filePath(QDir("house/house_obj.obj").path()),
 			dir.filePath(QDir("windmill/windmill.obj").path()),
 			dir.filePath(QDir("chapel/chapel_obj.obj").path()),
-			dir.filePath(QDir("capsule/capsule.obj").path())*/
+			dir.filePath(QDir("capsule/capsule.obj").path())
 		};
 	}
 	
