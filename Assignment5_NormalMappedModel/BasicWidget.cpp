@@ -11,6 +11,8 @@ static QString drawModeToString(DrawMode drawMode) {
 		return "Texture debug";
 	case DrawMode::NORM_DEBUG:
 		return "Normal debug";
+	case DrawMode::LIGHTING_DEBUG:
+		return "Lighting debug";
 	}
 }
 
@@ -81,6 +83,9 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 			break;
 		case Qt::Key_N:
 			setDrawMode(DrawMode::NORM_DEBUG);
+			break;
+		case Qt::Key_L:
+			setDrawMode(DrawMode::LIGHTING_DEBUG);
 			break;
 		case Qt::Key_Space:
 			paused_ = !paused_;
@@ -194,6 +199,7 @@ void BasicWidget::initializeGL()
 		"    Press W to enter wireframe mode. Press again to return to default.\n" <<
 		"    Press T to enter texture debug mode. Press again to return to default.\n" <<
 		"    Press N to enter normal debug mode. Press again to return to default.\n" <<
+		"    Press L to enter lighting debug mode. Press again to return to default.\n" <<
 		"    Press D to return to default drawing mode.\n" <<
 		"  Quitting:\n" <<
 		"    Press Q to quit.\n\n";

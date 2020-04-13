@@ -105,7 +105,7 @@ void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& face
 	ibo_.release();
 
 	// Set up our lights
-	lights_ << PointLight(QVector3D(0.0f, 0.0f, -4.0f), QVector3D(1.0f, 1.0f, 1.0f));
+	lights_ << PointLight(QVector3D(0.0f, 1.0f, 2.0f), QVector3D(1.0f, 1.0f, 1.0f));
 }
 
 void Renderable::update(const qint64 msSinceLastFrame)
