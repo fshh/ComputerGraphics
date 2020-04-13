@@ -5,14 +5,20 @@
 
 *TODO*: Please edit the following information in your assignment
 
+* Notes:
+  * The program will print instructions for the controls to the console on startup.
 * Name and partners name(At most 1 partner for this Assignment): 
+  * Andrew Knollmeyer
 * How many hours did it take you to complete this Assignment? 
+  * 18 hours
 * Did you collaborate or share ideas with any other students/TAs/Professors? 
+  * No
 * Did you use any external resources? 
-  * (tbd if any)
-  * (tbd if any)
-  * (tbd if any)
+  * https://www.gamasutra.com/view/feature/129939/messing_with_tangent_space.php
+  * https://learnopengl.com/Advanced-Lighting/Normal-Mapping
+  * https://learnopengl.com/Lighting/Multiple-lights
 * (Optional) What was the most interesting part of the assignment? How would you improve this assignment?
+  * I came out of this assignment with a much more grounded understanding of tangent space than I had after the lecture. It also felt SO GOOD when it finally worked and the brick wall suddenly looked 3D!
   
 ## Description
 
