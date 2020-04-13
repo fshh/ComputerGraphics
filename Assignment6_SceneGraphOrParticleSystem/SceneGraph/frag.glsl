@@ -35,35 +35,32 @@ vec3 CalcPointLight(PointLight light, vec3 normal, vec3 viewDir);
 
 void main() {
 	// Calculate normal in world space based on normal map
-	vec3 N;
+	vec3 normal;
 	if (hasNormalMap) {
-		N = texture(normalMap, texCoords).rgb;
-		N = N * 2.0 - 1.0;
+		normal = texture(normalMap, texCoords).rgb;
+		normal = normal * 2.0 - 1.0;
 	} else {
-		N = norm;
+		normal = norm;
 	}
-	N = normalize(tangentToWorld * N);
+	normal = normalize(tangentToWorld * normal);
+
+	// Calculation to get camera position taken from this post: https://community.khronos.org/t/extracting-camera-position-from-a-modelview-matrix/68031
+	mat4 inverseView = inverse(viewMatrix);
+	vec3 viewPos = vec3(inverseView[3] / inverseView[3][3]);
+	vec3 viewDir = normalize(viewPos - fragPos);
+
+	// Store final texture color
+	vec3 diffuseColor = texture(diffuseMap, texCoords).rgb;
 
 	// Default mode
 	if (drawMode == 0) {
 		vec3 lighting = vec3(0);
 
-		// Calculation to get camera position taken from this post: https://community.khronos.org/t/extracting-camera-position-from-a-modelview-matrix/68031
-		mat4 inverseView = inverse(viewMatrix);
-		vec3 viewPos = vec3(inverseView[3] / inverseView[3][3]);
-		vec3 viewDir = normalize(viewPos - fragPos);
-
 		for (int ii = 0; ii < NUM_POINT_LIGHTS; ++ii) {
-			lighting += CalcPointLight(pointLights[ii], N, viewDir);
+			lighting += CalcPointLight(pointLights[ii], normal, viewDir);
 		}
 
-		// Store final texture color
-		vec3 diffuseColor = texture(diffuseMap, texCoords).rgb;
-
 		fragColor = vec4(diffuseColor * lighting, 1.0);
-		//fragColor = vec4(diffuseColor, 1.0);
-		//fragColor = vec4(tangentToWorld[1] * 0.5 + 0.5, 1.0);
-		//fragColor = vec4(normalize(pointLights[0].position - fragPos), 1.0);
 	} 
 	// Wireframe mode
 	else if (drawMode == 1) {
@@ -75,8 +72,17 @@ void main() {
 	}
 	// Normal debug mode
 	else if (drawMode == 3) {
-		fragColor = vec4(N * 0.5 + 0.5, 1.0);
-		//fragColor = vec4(norm * 0.5 + 0.5, 1.0);
+		fragColor = vec4(normal * 0.5 + 0.5, 1.0);
+	}
+	// Lighting debug mode
+	else if (drawMode == 4) {
+		vec3 lighting = vec3(0);
+
+		for (int ii = 0; ii < NUM_POINT_LIGHTS; ++ii) {
+			lighting += CalcPointLight(pointLights[ii], normal, viewDir);
+		}
+
+		fragColor = vec4(lighting, 1.0);
 	}
 }
 

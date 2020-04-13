@@ -23,9 +23,9 @@ QVector<Vec3> getFaceTangents(const QVector<Face>& faces, const QVector<Vertex>&
 		Vertex v3 = vertices[face.c];
 
 		Vec3 edge1 = v2.position - v1.position;
-		Vec2 deltaUV1 = v2.texCoord - v1.texCoord;
-
 		Vec3 edge2 = v3.position - v1.position;
+
+		Vec2 deltaUV1 = v2.texCoord - v1.texCoord;
 		Vec2 deltaUV2 = v3.texCoord - v1.texCoord;
 
 		float f = 1.0f / (deltaUV1.u * deltaUV2.v - deltaUV2.u * deltaUV1.v);

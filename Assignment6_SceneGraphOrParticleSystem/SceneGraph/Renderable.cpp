@@ -55,12 +55,12 @@ void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& face
 	modelMatrix_.setToIdentity();
 	// Load diffuse map
 	qDebug() << "Load diffuse" << diffuseMap;
-	diffuseMap_.setData(QImage(diffuseMap).mirrored(true, true));
+	diffuseMap_.setData(QImage(diffuseMap).mirrored(true, false));
 
 	// Load normal map
 	qDebug() << "Load normal";
 	if (!normalMap.isEmpty()) {
-		normalMap_.setData(QImage(normalMap).mirrored(true, true));
+		normalMap_.setData(QImage(normalMap).mirrored(true, false));
 	}
 	
 	// set our vertex size
@@ -107,7 +107,7 @@ void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& face
 	ibo_.release();
 
 	// Set up our lights
-	lights_ << PointLight(QVector3D(0.0f, 0.0f, -4.0f), QVector3D(1.0f, 1.0f, 1.0f));
+	lights_ << PointLight(QVector3D(4.0f, 0.0f, 0.0f), QVector3D(1.0f, 1.0f, 1.0f));
 }
 
 void Renderable::update(const qint64 msSinceLastFrame)
@@ -129,6 +129,7 @@ void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMa
 	rotMatrix.rotate(rotationAngle_, rotationAxis_);
 	QMatrix4x4 modelMat = modelMatrix_ * rotMatrix;
 	modelMat = world * modelMat;
+	QMatrix4x4 normalMat = modelMat.inverted().transposed();
 
 	// Bind shader
 	shader_.bind();
@@ -137,6 +138,7 @@ void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMa
 	shader_.setUniformValue("modelMatrix", modelMat);
 	shader_.setUniformValue("viewMatrix", view);
 	shader_.setUniformValue("projectionMatrix", projection);
+	shader_.setUniformValue("normalMatrix", normalMat);
 	shader_.setUniformValue("drawMode", (int)drawMode);
 	bool hasNormalMap = normalMap_.isCreated();
 	shader_.setUniformValue("hasNormalMap", hasNormalMap);

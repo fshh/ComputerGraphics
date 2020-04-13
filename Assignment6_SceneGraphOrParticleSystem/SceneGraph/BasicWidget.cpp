@@ -11,6 +11,8 @@ static QString drawModeToString(DrawMode drawMode) {
 		return "Texture debug";
 	case DrawMode::NORM_DEBUG:
 		return "Normal debug";
+	case DrawMode::LIGHTING_DEBUG:
+		return "Lighting debug";
 	}
 }
 
@@ -19,7 +21,7 @@ static QString drawModeToString(DrawMode drawMode) {
 BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), logger_(this), drawMode_(DrawMode::DEFAULT), paused_(false), mouseAction_(MouseControl::NoAction)
 {
   setFocusPolicy(Qt::StrongFocus);
-	camera_.setPosition(QVector3D(0.0, 0.0, -4.0));
+	camera_.setPosition(QVector3D(0.0, 0.0, 10.0));
 	camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
 	world_.setToIdentity();
 }
@@ -72,12 +74,15 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 		case Qt::Key_N:
 			setDrawMode(DrawMode::NORM_DEBUG);
 			break;
+		case Qt::Key_L:
+			setDrawMode(DrawMode::LIGHTING_DEBUG);
+			break;
 		case Qt::Key_Space:
 			paused_ = !paused_;
 			qDebug() << "Rotation" << (paused_ ? "paused." : "unpaused.");
 			break;
 		case Qt::Key_R:
-			camera_.setPosition(QVector3D(0.0, 0.0, -4.0));
+			camera_.setPosition(QVector3D(0.0, 0.0, 10.0));
 			camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
 			qDebug() << "Camera orientation reset.";
 			update();
@@ -141,11 +146,20 @@ void BasicWidget::initializeGL()
 	// Load solar system
 	qDebug() << "Loading solar system...";
 
-	qDebug() << "  Loading sun...";
-	Sphere sunSphere = Sphere(1.0f);
+	qDebug() << "  Loading Sun...";
+	Sphere sunSphere = Sphere(3.0f);
 	Renderable* sun = new Renderable();
-	sun->init(sunSphere.vertices(), sunSphere.faces(), texDir.filePath("sunHD.ppm"), "");
+	sun->init(sunSphere.vertices(), sunSphere.faces(), texDir.filePath("sun.ppm"), "");
 	renderables_ << sun;
+
+	qDebug() << "  Loading Earth...";
+	Sphere earthSphere = Sphere(1.0f);
+	Renderable* earth = new Renderable();
+	earth->init(earthSphere.vertices(), earthSphere.faces(), texDir.filePath("earth.ppm"), "");
+	QMatrix4x4 earthModel = QMatrix4x4();
+	earthModel.translate(QVector3D(6.0f, 0.0f, 0.0f));
+	earth->setModelMatrix(earthModel);
+	renderables_ << earth;
 
 	if (renderables_.isEmpty()) {
 		quit("No objects loaded correctly", 1);
@@ -166,6 +180,7 @@ void BasicWidget::initializeGL()
 		"    Press W to enter wireframe mode. Press again to return to default.\n" <<
 		"    Press T to enter texture debug mode. Press again to return to default.\n" <<
 		"    Press N to enter normal debug mode. Press again to return to default.\n" <<
+		"    Press L to enter lighting debug mode. Press again to return to default.\n" <<
 		"    Press D to return to default drawing mode.\n" <<
 		"  Quitting:\n" <<
 		"    Press Q to quit.\n\n";

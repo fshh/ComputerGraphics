@@ -77,9 +77,6 @@ void Camera::rotateAboutFocus(const float yaw, const float pitch)
 
 	// Add focus point to camFocusVector to get position relative to focus point
 	position_ = lookAt_ + camFocusVector;
-
-	// Set up vector
-	up_ = up;
 }
 
 void Camera::rotateInPlace(const float yaw, const float pitch)

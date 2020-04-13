@@ -16,6 +16,7 @@ out mat3 tangentToWorld;
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projectionMatrix;
+uniform mat4 normalMatrix;
 
 void main()
 {
@@ -29,12 +30,11 @@ void main()
 	texCoords = textureCoords;
 
 	// Pass normal to frag
-	//norm = normal;
-	norm = normalize(vec3(modelMatrix * vec4(normal, 0.0)));
+	norm = normalize(mat3(normalMatrix) * normal);
 
 	// Create world-to-tangent space matrix
-	vec3 T = normalize(vec3(modelMatrix * vec4(tangent, 0.0)));
-	vec3 N = normalize(vec3(modelMatrix * vec4(normal, 0.0)));
+	vec3 T = normalize(vec3(normalMatrix * vec4(tangent, 0.0)));
+	vec3 N = normalize(vec3(normalMatrix * vec4(normal, 0.0)));
 	// re-orthogonalize T with respect to N
 	T = normalize(T - dot(T, N) * N);
 	// then retrieve perpendicular vector B with the cross product of T and N
