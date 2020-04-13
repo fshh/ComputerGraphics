@@ -1,26 +1,49 @@
 #include "OBJLoader.h"
 #include <fstream>
 
-Vec3 tangentFace(const Face& face, const QVector<Vertex>& vertices) {
-	Vertex v1 = vertices[face.a];
-	Vertex v2 = vertices[face.b];
-	Vertex v3 = vertices[face.c];
+QVector<Vec3> getFaceTangents(const QVector<Face>& faces, const QVector<Vertex>& vertices) {
+	QVector<Vec3> tangents(faces.size());
+	for (int ii = 0; ii < faces.size(); ++ii) {
+		Face face = faces[ii];
 
-	Vec3 edge1 = v2.position - v1.position;
-	Vec2 deltaUV1 = v2.texCoord - v1.texCoord;
+		Vertex v1 = vertices[face.a];
+		Vertex v2 = vertices[face.b];
+		Vertex v3 = vertices[face.c];
 
-	Vec3 edge2 = v3.position - v1.position;
-	Vec2 deltaUV2 = v3.texCoord - v1.texCoord;
+		Vec3 edge1 = v2.position - v1.position;
+		Vec2 deltaUV1 = v2.texCoord - v1.texCoord;
 
-	float f = 1.0f / (deltaUV1.u * deltaUV2.v - deltaUV2.u * deltaUV1.v);
+		Vec3 edge2 = v3.position - v1.position;
+		Vec2 deltaUV2 = v3.texCoord - v1.texCoord;
 
-	Vec3 tangent;
-	tangent.x = f * (deltaUV2.v * edge1.x - deltaUV1.v * edge2.x);
-	tangent.y = f * (deltaUV2.v * edge1.y - deltaUV1.v * edge2.y);
-	tangent.z = f * (deltaUV2.v * edge1.z - deltaUV1.v * edge2.z);
-	tangent.normalize();
+		float f = 1.0f / (deltaUV1.u * deltaUV2.v - deltaUV2.u * deltaUV1.v);
 
-	return tangent;
+		Vec3 tangent;
+		tangent.x = f * (deltaUV2.v * edge1.x - deltaUV1.v * edge2.x);
+		tangent.y = f * (deltaUV2.v * edge1.y - deltaUV1.v * edge2.y);
+		tangent.z = f * (deltaUV2.v * edge1.z - deltaUV1.v * edge2.z);
+		tangent.normalize();
+
+		tangents[ii] = tangent;
+	}
+
+	return tangents;
+}
+
+void setVertexTangents(const QVector<Vec3> faceTangents, const QVector<Face>& faces, QVector<Vertex>& vertices) {
+	// Calculate cumulative tangents for each vertex
+	// Don't need to average because we normalize it anyway
+	for (int ii = 0; ii < faces.size(); ++ii) {
+		Face face = faces[ii];
+		for (int jj = 0; jj < 3; ++jj) {
+			vertices[face[jj]].tangent += faceTangents[ii];
+		}
+	}
+	
+	// Normalize each vertex's tangent
+	for (Vertex& vert : vertices) {
+		vert.tangent.normalize();
+	}
 }
 
 bool OBJLoader::isOBJFile(QString filePath) {
@@ -106,13 +129,13 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 	QString diffuseMap = "";
 	QString normalMap = "";
 	
-	// prepare buffers
+	// read positions, texture coords, and normals from the file
 	QVector<Vec3> positions;
 	QVector<Vec2> texCoords;
 	QVector<Vec3> normals;
-	QVector<Vec3> tangents;
-	QVector<Vertex> vertices;
+	// read faces from file and create list of unique vertices
 	QVector<Face> faces;
+	QVector<Vertex> vertices;
 	
 	// process the file
 	QTextStream in(&file);
@@ -130,36 +153,51 @@ Renderable* OBJLoader::loadOBJ(QString filePath) {
 			texCoords << loadVec2(line);
 		}
 		else if (lineType == "vn") {
-			normals << loadVec3(line);
+			normals << -loadVec3(line);
 		}
 		else if (lineType == "f") {
 			loadFace(line, positions, texCoords, normals, vertices, faces);
 		}
 	}
+
+	// calculate tangents (per face) after reading all file data
+	QVector<Vec3> faceTangents = getFaceTangents(faces, vertices);
+	// set vertex tangents based on all faces a vertex is part of
+	setVertexTangents(faceTangents, faces, vertices);
 	
 	/*
 	qDebug() << "Positions";
-	for (Vec3& pos : positions) {
+	for (const Vec3& pos : positions) {
 		qDebug() << pos.x << pos.y << pos.z;
 	}
 	
 	qDebug() << "TexCoords";
-	for (Vec2& texCoord : texCoords) {
+	for (const Vec2& texCoord : texCoords) {
 		qDebug() << texCoord.u << texCoord.v;
 	}
 	
 	qDebug() << "Normals";
-	for (Vec3& norm : normals) {
+	for (const Vec3& norm : normals) {
 		qDebug() << norm.x << norm.y << norm.z;
 	}
 
+	qDebug() << "Face Tangents";
+	for (const Vec3& tan : faceTangents) {
+		qDebug() << tan.x << tan.y << tan.z;
+	}
+
+	qDebug() << "Vertex Tangents";
+	for (const Vertex& vert : vertices) {
+		qDebug() << vert.tangent.x << vert.tangent.y << vert.tangent.z;
+	}
+
 	qDebug() << "Vertices";
-	for (Vertex& vert : vertices) {
+	for (const Vertex& vert : vertices) {
 		qDebug() << vert.position.x << vert.position.y << vert.position.z << vert.texCoord.u << vert.texCoord.v << vert.normal.x << vert.normal.y << vert.normal.z << vert.tangent.x << vert.tangent.y << vert.tangent.z;
 	}
 	
 	qDebug() << "Faces";
-	for (Face& face : faces) {
+	for (const Face& face : faces) {
 		qDebug() << face.a << face.b << face.c;
 	}
 

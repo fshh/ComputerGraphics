@@ -28,8 +28,19 @@ bool Vec3::operator==(Vec3 other) const {
 	return x == other.x && y == other.y && z == other.z;
 }
 
+Vec3& Vec3::operator+=(const Vec3& other) {
+	x += other.x;
+	y += other.y;
+	z += other.z;
+	return (*this);
+}
+
 Vec3 Vec3::operator-(const Vec3& other) const {
 	return Vec3(x - other.x, y - other.y, z - other.z);
+}
+
+Vec3 Vec3::operator-() const {
+	return Vec3(-x, -y, -z);
 }
 
 float& Vec3::operator[](int i) {
@@ -113,3 +124,9 @@ unsigned int& Face::operator[](int i) {
 const unsigned int& Face::operator[](int i) const {
 	return ((&a)[i]);
 }
+
+
+// ~~~~~~~~~~ POINTLIGHT ~~~~~~~~~~
+PointLight::PointLight() : position(), color(), ambientIntensity(0), specularIntensity(0), constant(0), linear(0), quadratic(0) {}
+PointLight::PointLight(QVector3D position, QVector3D color, float ambientIntensity, float specularIntensity, float constant, float linear, float quadratic) :
+	position(position), color(color), ambientIntensity(ambientIntensity), specularIntensity(specularIntensity), constant(constant), linear(linear), quadratic(quadratic) {}

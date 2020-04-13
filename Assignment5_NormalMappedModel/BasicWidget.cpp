@@ -16,9 +16,12 @@ static QString drawModeToString(DrawMode drawMode) {
 
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QList<QDir> objectFiles, QWidget* parent) : QOpenGLWidget(parent), objectFiles_(objectFiles), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0)
+BasicWidget::BasicWidget(QList<QDir> objectFiles, QWidget* parent) : QOpenGLWidget(parent), objectFiles_(objectFiles), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0), paused_(false)
 {
   setFocusPolicy(Qt::StrongFocus);
+	camera_.setPosition(QVector3D(0.0, 0.0, -4.0));
+	camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
+	world_.setToIdentity();
 }
 
 BasicWidget::~BasicWidget()
@@ -79,10 +82,55 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 		case Qt::Key_N:
 			setDrawMode(DrawMode::NORM_DEBUG);
 			break;
+		case Qt::Key_Space:
+			paused_ = !paused_;
+			qDebug() << "Rotation" << (paused_ ? "paused." : "unpaused.");
+			break;
+		case Qt::Key_R:
+			camera_.setPosition(QVector3D(0.0, 0.0, -4.0));
+			camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
+			qDebug() << "Camera orientation reset.";
+			update();
+			break;
 		default:
 			qDebug() << "You Pressed an unsupported Key!";
 			break;
 	}
+}
+
+void BasicWidget::mousePressEvent(QMouseEvent* mouseEvent)
+{
+	if (mouseEvent->button() == Qt::LeftButton) {
+		mouseAction_ = Rotate;
+	}
+	else if (mouseEvent->button() == Qt::RightButton) {
+		mouseAction_ = Zoom;
+	}
+	lastMouseLoc_ = mouseEvent->pos();
+}
+
+void BasicWidget::mouseMoveEvent(QMouseEvent* mouseEvent)
+{
+	if (mouseAction_ == NoAction) {
+		return;
+	}
+	QPoint delta = mouseEvent->pos() - lastMouseLoc_;
+	lastMouseLoc_ = mouseEvent->pos();
+	if (mouseAction_ == Rotate) {
+		float rotateScale = 0.1f;
+		QPoint scaledDelta = delta * rotateScale;
+		camera_.rotateAboutFocus(delta.x(), delta.y());
+	}
+	else if (mouseAction_ == Zoom) {
+		float zoomScale = 0.1f;
+		camera_.zoomCamera(delta.y() * zoomScale);
+	}
+	update();
+}
+
+void BasicWidget::mouseReleaseEvent(QMouseEvent* mouseEvent)
+{
+	mouseAction_ = NoAction;
 }
 
 void BasicWidget::initializeGL()
@@ -103,22 +151,26 @@ void BasicWidget::initializeGL()
 		dir.cd("objects");
 
 		objectFiles_ = {
-			dir.filePath(QDir("brickWall_lowRes/brickWall.obj").path()),
-			dir.filePath(QDir("house/house_obj.obj").path()),
-			dir.filePath(QDir("windmill/windmill.obj").path()),
-			dir.filePath(QDir("chapel/chapel_obj.obj").path()),
-			dir.filePath(QDir("capsule/capsule.obj").path())
+			dir.filePath("brickWall_lowRes/brickWall.obj"),
+			//dir.filePath("brickWall_highRes/brickWall.obj"),
+			dir.filePath("house/house_obj.obj"),
+			dir.filePath("windmill/windmill.obj"),
+			dir.filePath("chapel/chapel_obj.obj")
 		};
 	}
 	
 	// Load objects
-	qDebug() << "Loaded objects:";
+	qDebug() << "Loading objects...";
 	for (QDir& obj : objectFiles_) {
 		QString path = obj.path();
+		qDebug() << "  Loading" << path.right(path.size() - path.lastIndexOf("/") - 1);
 		Renderable* ren = OBJLoader::loadOBJ(path);
 		if (ren) {
-			qDebug() << path;
+			qDebug() << "    Success";
 			renderables_.push_back(ren);
+		}
+		else {
+			qDebug() << "    Failure";
 		}
 	}
 
@@ -128,15 +180,23 @@ void BasicWidget::initializeGL()
 
 	// Print instructions
 	qDebug() << "\n\nPass object files to the program like so: ./App \"path/to/object1.obj\" \"path/to/object2.obj\" ...";
-	qDebug() << "If no object files are provided, the program will automatically load in the brick wall, house, windmill, chapel, and capsule.";
-	qDebug() << 
+	qDebug() << "If no object files are provided, the program will automatically load in the brick wall, house, windmill, and chapel.";
+	qDebug() <<
 		"Hotkeys:\n" <<
+		"  Camera Controls:\n" <<
+		"    Left click and drag to move the camera.\n" <<
+		"    Right click and drag to zoom the camera in/out.\n" <<
+		"    Press R to reset the camera to its original orientation.\n" <<
+		"  Model Controls:\n" <<
 		"    Press left and right arrow keys to cycle through models.\n" <<
-		"    Press Q to quit.\n" <<
-		"    Press W to enter wireframe mode.Press again to return to default.\n" <<
-		"    Press T to enter texture debug mode.Press again to return to default.\n" <<
-		"    Press N to enter normal debug mode.Press again to return to default.\n" <<
-		"    Press D to return to default drawing mode.\n\n";
+		"    Press spacebar to toggle the model rotation.\n" <<
+		"  Draw Modes:\n" <<
+		"    Press W to enter wireframe mode. Press again to return to default.\n" <<
+		"    Press T to enter texture debug mode. Press again to return to default.\n" <<
+		"    Press N to enter normal debug mode. Press again to return to default.\n" <<
+		"    Press D to return to default drawing mode.\n" <<
+		"  Quitting:\n" <<
+		"    Press Q to quit.\n\n";
 	
 	// Prepare for render
 	glViewport(0, 0, width(), height());
@@ -157,12 +217,8 @@ void BasicWidget::resizeGL(int w, int h)
 		logger_.startLogging();
 	}
   glViewport(0, 0, w, h);
-  view_.setToIdentity();
-  view_.lookAt(QVector3D(0.0f, 0.0f, 5.0f),
-      QVector3D(0.0f, 0.0f, 0.0f),
-      QVector3D(0.0f, 1.0f, 0.0f));
-  projection_.setToIdentity();
-  projection_.perspective(70.f, (float)w/(float)h, 0.001f, 1000.0f);
+
+	camera_.setPerspective(70.f, (float)w / (float)h, 0.001, 1000.0);
   glViewport(0, 0, w, h);
 }
 
@@ -172,15 +228,17 @@ void BasicWidget::paintGL()
   glEnable(GL_DEPTH_TEST);
   glDisable(GL_CULL_FACE);
 
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClearColor(0.1f, 0.1f, 0.1f, 1.f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	// update all renderables, but only draw the selected one
 	for (int ii = 0; ii < renderables_.size(); ++ii) {
 		Renderable* renderable = renderables_[ii];
-		renderable->update(msSinceRestart);
+		if (!paused_) { 
+			renderable->update(msSinceRestart); 
+		}
 		if (ii == currObj_) {
-			renderable->draw(view_, projection_, drawMode_);
+			renderable->draw(world_, camera_.getViewMatrix(), camera_.getProjectionMatrix(), drawMode_);
 		}
   }
 	

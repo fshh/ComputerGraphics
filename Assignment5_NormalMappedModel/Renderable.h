@@ -29,6 +29,8 @@ protected:
 	QOpenGLBuffer ibo_;
 	// We have a single draw call, so a single vao
 	QOpenGLVertexArrayObject vao_;
+	// Keep track of our lights
+	QVector<PointLight> lights_;
 	// Keep track of how many triangles we actually have to draw in our ibo
 	unsigned int numTris_;
 	int vertexSize_;
@@ -47,7 +49,7 @@ public:
 
 	virtual void init(const QVector<Vertex>& vertices, const QVector<Face>& faces, const QString& diffuseMap, const QString& normalMap);
 	virtual void update(const qint64 msSinceLastFrame);
-	virtual void draw(const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode);
+	virtual void draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode);
 
 	void setModelMatrix(const QMatrix4x4& transform);
 	void setRotationAxis(const QVector3D& axis);
