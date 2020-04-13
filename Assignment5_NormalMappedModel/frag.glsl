@@ -34,6 +34,16 @@ uniform PointLight pointLights[NUM_POINT_LIGHTS];
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 viewDir); 
 
 void main() {
+	// Calculate normal in world space based on normal map
+	vec3 N;
+	if (hasNormalMap) {
+		N = texture(normalMap, texCoords).rgb;
+		N = N * 2.0 - 1.0;
+	} else {
+		N = normalize(norm);
+	}
+	N = normalize(tangentToWorld * N);
+
 	// Default mode
 	if (drawMode == 0) {
 		vec3 lighting = vec3(0);
@@ -42,11 +52,6 @@ void main() {
 		mat4 inverseView = inverse(viewMatrix);
 		vec3 viewPos = vec3(inverseView[3] / inverseView[3][3]);
 		vec3 viewDir = normalize(viewPos - fragPos);
-		
-		// Calculate normal in world space based on normal map
-		vec3 N = texture(normalMap, texCoords).rgb;
-		N = N * 2.0 - 1.0;
-		N = normalize(tangentToWorld * N);
 
 		for (int ii = 0; ii < NUM_POINT_LIGHTS; ++ii) {
 			lighting += CalcPointLight(pointLights[ii], N, viewDir);
@@ -56,6 +61,9 @@ void main() {
 		vec3 diffuseColor = texture(diffuseMap, texCoords).rgb;
 
 		fragColor = vec4(diffuseColor * lighting, 1.0);
+		//fragColor = vec4(diffuseColor, 1.0);
+		//fragColor = vec4(0.0, tangentToWorld[1].y * 0.5 + 0.5, 0.0, 1.0);
+		//fragColor = vec4(normalize(pointLights[0].position - fragPos), 1.0);
 	} 
 	// Wireframe mode
 	else if (drawMode == 1) {
@@ -67,15 +75,8 @@ void main() {
 	}
 	// Normal debug mode
 	else if (drawMode == 3) {
-		if (hasNormalMap) {
-			//fragColor = texture(normalMap, texCoords);
-			vec3 N = texture(normalMap, texCoords).rgb;
-			N = N * 2.0 - 1.0;
-			N = normalize(tangentToWorld * N);
-			fragColor  = vec4(N * 0.5 + 0.5, 1.0);
-		} else {
-			fragColor = vec4(norm * 0.5 + 0.5, 1.0);
-		}
+		fragColor = vec4(N * 0.5 + 0.5, 1.0);
+		//fragColor = vec4(norm * 0.5 + 0.5, 1.0);
 	}
 }
 

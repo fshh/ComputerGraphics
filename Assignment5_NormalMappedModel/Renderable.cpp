@@ -127,6 +127,7 @@ void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMa
 	rotMatrix.rotate(rotationAngle_, rotationAxis_);
 	QMatrix4x4 modelMat = modelMatrix_ * rotMatrix;
 	modelMat = world * modelMat;
+	QMatrix4x4 normalMat = modelMat.inverted().transposed();
 
 	// Bind shader
 	shader_.bind();
@@ -135,6 +136,7 @@ void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMa
 	shader_.setUniformValue("modelMatrix", modelMat);
 	shader_.setUniformValue("viewMatrix", view);
 	shader_.setUniformValue("projectionMatrix", projection);
+	shader_.setUniformValue("normalMatrix", normalMat);
 	shader_.setUniformValue("drawMode", (int)drawMode);
 	bool hasNormalMap = normalMap_.isCreated();
 	shader_.setUniformValue("hasNormalMap", hasNormalMap);

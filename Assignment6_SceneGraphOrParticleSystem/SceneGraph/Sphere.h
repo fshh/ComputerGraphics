@@ -1,3 +1,5 @@
+#pragma once
+
 /** @file Sphere.h
  *  @brief Draw a simple sphere primitive.
  *
@@ -7,91 +9,166 @@
  *  @author Mike
  *  @bug No known bugs.
  */
-#include "Object.h"
-#include "Geometry.h"
 #include <cmath>
-
 #include <QtGui>
+#include "Structs.h"
+
+QVector<Vec3> getFaceTangents(const QVector<Face>& faces, const QVector<Vertex>& vertices) {
+	QVector<Vec3> tangents(faces.size());
+	for (int ii = 0; ii < faces.size(); ++ii) {
+		Face face = faces[ii];
+
+		Vertex v1 = vertices[face.a];
+		Vertex v2 = vertices[face.b];
+		Vertex v3 = vertices[face.c];
+
+		Vec3 edge1 = v2.position - v1.position;
+		Vec2 deltaUV1 = v2.texCoord - v1.texCoord;
+
+		Vec3 edge2 = v3.position - v1.position;
+		Vec2 deltaUV2 = v3.texCoord - v1.texCoord;
+
+		float f = 1.0f / (deltaUV1.u * deltaUV2.v - deltaUV2.u * deltaUV1.v);
+
+		Vec3 tangent;
+		tangent.x = f * (deltaUV2.v * edge1.x - deltaUV1.v * edge2.x);
+		tangent.y = f * (deltaUV2.v * edge1.y - deltaUV1.v * edge2.y);
+		tangent.z = f * (deltaUV2.v * edge1.z - deltaUV1.v * edge2.z);
+		tangent.normalize();
+
+		tangents[ii] = tangent;
+	}
+
+	return tangents;
+}
+
+void setVertexTangents(const QVector<Vec3>& faceTangents, const QVector<Face>& faces, QVector<Vertex>& vertices) {
+	// Calculate cumulative tangents for each vertex
+	// Don't need to average because we normalize it anyway
+	for (int ii = 0; ii < faces.size(); ++ii) {
+		Face face = faces[ii];
+		for (int jj = 0; jj < 3; ++jj) {
+			vertices[face[jj]].tangent += faceTangents[ii];
+		}
+	}
+
+	// Normalize each vertex's tangent
+	for (Vertex& vert : vertices) {
+		vert.tangent.normalize();
+	}
+}
 
 class Sphere {
 public:
 
-    // Constructor for the Sphere
-    Sphere();
-    // The intialization routine for this object.
-    void init();
+	// Constructor for the Sphere
+	Sphere(float radius);
+	// The intialization routine for this object.
+	void init();
 
-    // Getters for our data.
-    QVector<QVector3D> positions() const {return positions_;}
-    QVector<QVector3D> normals() const {return normals_;}
-    QVector<QVector2D> texCoords() const {return textureCoords_;}
-    QVector<unsigned int> indexes() const {return index_;}
+	// Getters for our data.
+	QVector<Vertex> vertices() const {return vertices_;}
+	QVector<Face> faces() const {return faces_;}
 
 private:
-    QVector<QVector3D> positions_;
-    QVector<QVector3D> normals_;
-    QVector<QVector2D> textureCoords_;
-    QVector<unsigned int> index_;
+	float radius_;
+	int sectorCount_;
+	int stackCount_;
+	QVector<Vertex> vertices_;
+	QVector<Face> faces_;
 };
 
 // Calls the initalization routine
-Sphere::Sphere(){
-    std::cout << "(Sphere.cpp) Sphere constructor called (derived from Object)\n";
-    init();
+Sphere::Sphere(float radius) : radius_(radius), sectorCount_(30), stackCount_(30) {
+	init();
 }
 
 
-// Algorithm for rendering a sphere
-// The algorithm was obtained here: http://learningwebgl.com/blog/?p=1253
-// Please review the page so you can understand the algorithm. You may think
-// back to your algebra days and equation of a circle! (And some trig with
-// how sin and cos work
+///////////////////////////////////////////////////////////////////////////////
+// build vertices of sphere with smooth shading using parametric equation
+// x = r * cos(u) * cos(v)
+// y = r * cos(u) * sin(v)
+// z = r * sin(u)
+// where u: stack(latitude) angle (-90 <= u <= 90)
+//       v: sector(longitude) angle (0 <= v <= 360)
+///////////////////////////////////////////////////////////////////////////////
 void Sphere::init(){
-    unsigned int latitudeBands = 30;
-    unsigned int longitudeBands = 30;
-    float radius = 1.0f;
-    double PI = 3.14159265359;
+	const float PI = acos(-1);
 
-        for(unsigned int latNumber = 0; latNumber <= latitudeBands; latNumber++){
-            float theta = latNumber * PI / latitudeBands;
-            float sinTheta = sin(theta);
-            float cosTheta = cos(theta);
+	float x, y, z, xy;                              // vertex position
+	float nx, ny, nz, lengthInv = 1.0f / radius_;    // normal
+	float u, v;                                     // texCoord
 
-            for(unsigned int longNumber = 0; longNumber <= longitudeBands; longNumber++){
-                float phi = longNumber * 2 * PI / longitudeBands;
-                float sinPhi = sin(phi);
-                float cosPhi = cos(phi);
+	float sectorStep = 2 * PI / sectorCount_;
+	float stackStep = PI / stackCount_;
+	float sectorAngle, stackAngle;
 
-                float x = cosPhi * sinTheta;
-                float y = cosTheta;
-                float z = sinPhi * sinTheta;
-                // Why is this "1-" Think about the range of texture coordinates
-                float u = 1 - ((float)longNumber / (float)longitudeBands);
-                float v = 1 - ((float)latNumber / (float)latitudeBands);
+	for (int i = 0; i <= stackCount_; ++i)
+	{
+		stackAngle = PI / 2 - i * stackStep;        // starting from pi/2 to -pi/2
+		xy = radius_ * cosf(stackAngle);             // r * cos(u)
+		y = radius_ * sinf(stackAngle);              // r * sin(u)
 
-                // Setup geometry
-                positions_.push_back(QVector3D(radius*x,radius*y,radius*z));   // Position
-                normals_.push_back(QVector3D(radius*x, radius*y, radius*z));
-                textureCoords_.push_back(QVector2D(u,v));         // Texture
-            }
-        }
+		// add (sectorCount+1) vertices per stack
+		// the first and last vertices have same position and normal, but different tex coords
+		for (int j = 0; j <= sectorCount_; ++j)
+		{
+			sectorAngle = j * sectorStep;           // starting from 0 to 2pi
 
-        // Now that we have all of our vertices
-        // generated, we need to generate our indices for our
-        // index element buffer.
-        // This diagram shows it nicely visually
-        // http://learningwebgl.com/lessons/lesson11/sphere-triangles.png
-        for (unsigned int latNumber1 = 0; latNumber1 < latitudeBands; latNumber1++){
-            for (unsigned int longNumber1 = 0; longNumber1 < longitudeBands; longNumber1++){
-                unsigned int first = (latNumber1 * (longitudeBands + 1)) + longNumber1;
-                unsigned int second = first + longitudeBands + 1;
-                index_.push_back(first);
-                index_.push_back(second);
-                index_.push_back(first+1);
+			// vertex position
+			x = xy * cosf(sectorAngle);             // r * cos(u) * cos(v)
+			z = xy * sinf(sectorAngle);             // r * cos(u) * sin(v)
+			Vec3 pos(x, y, z);
 
-                index_.push_back(second);
-                index_.push_back(second+1);
-                index_.push_back(first+1);
-            }
-        }
+			// vertex tex coord between [0, 1]
+			u = (float)j / sectorCount_;
+			v = (float)i / stackCount_;
+			Vec2 tex(u, v);
+
+			// normalized vertex normal
+			nx = x * lengthInv;
+			ny = y * lengthInv;
+			nz = z * lengthInv;
+			Vec3 norm(nx, ny, nz);
+
+			Vertex vert;
+			vert.position = pos;
+			vert.texCoord = tex;
+			vert.normal = norm;
+			vertices_ << vert;
+		}
+	}
+
+	// indices
+	//  k1--k1+1
+	//  |  / |
+	//  | /  |
+	//  k2--k2+1
+	unsigned int k1, k2;
+	for (int i = 0; i < stackCount_; ++i)
+	{
+		k1 = i * (sectorCount_ + 1);     // beginning of current stack
+		k2 = k1 + stackCount_ + 1;      // beginning of next stack
+
+		for (int j = 0; j < sectorCount_; ++j, ++k1, ++k2)
+		{
+			// 2 triangles per sector excluding 1st and last stacks
+			if (i != 0)
+			{
+				Face face(k1, k2, k1 + 1);			// k1---k2---k1+1
+				faces_ << face;  
+			}
+
+			if (i != (stackCount_ - 1))
+			{
+				Face face(k1 + 1, k2, k2 + 1);	// k1+1---k2---k2+1
+				faces_ << face;
+			}
+		}
+	}
+
+	// calculate tangents (per face) after reading all file data
+	QVector<Vec3> faceTangents = getFaceTangents(faces_, vertices_);
+	// set vertex tangents based on all faces a vertex is part of
+	setVertexTangents(faceTangents, faces_, vertices_);
 }

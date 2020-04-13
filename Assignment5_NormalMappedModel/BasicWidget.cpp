@@ -19,7 +19,7 @@ static QString drawModeToString(DrawMode drawMode) {
 BasicWidget::BasicWidget(QList<QDir> objectFiles, QWidget* parent) : QOpenGLWidget(parent), objectFiles_(objectFiles), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0), paused_(false)
 {
   setFocusPolicy(Qt::StrongFocus);
-	camera_.setPosition(QVector3D(0.0, 0.0, -4.0));
+	camera_.setPosition(QVector3D(0.0, 0.0, 4.0));
 	camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
 	world_.setToIdentity();
 }
@@ -87,7 +87,7 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 			qDebug() << "Rotation" << (paused_ ? "paused." : "unpaused.");
 			break;
 		case Qt::Key_R:
-			camera_.setPosition(QVector3D(0.0, 0.0, -4.0));
+			camera_.setPosition(QVector3D(0.0, 0.0, 4.0));
 			camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
 			qDebug() << "Camera orientation reset.";
 			update();
