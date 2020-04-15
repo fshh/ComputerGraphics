@@ -1,5 +1,5 @@
 #include "BasicWidget.h"
-#include "Sphere.h"
+#include "SolarSystem.h"
 
 static QString drawModeToString(DrawMode drawMode) {
 	switch (drawMode) {
@@ -18,31 +18,64 @@ static QString drawModeToString(DrawMode drawMode) {
 
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), logger_(this), drawMode_(DrawMode::DEFAULT), paused_(false), mouseAction_(MouseControl::NoAction)
+BasicWidget::BasicWidget(QWidget* parent) : QOpenGLWidget(parent), camera_(QVector3D(0, 5, 35)),
+	logger_(this), drawMode_(DrawMode::DEFAULT), paused_(false), mouseAction_(MouseControl::NoAction)
 {
   setFocusPolicy(Qt::StrongFocus);
-	camera_.setPosition(QVector3D(0.0, 0.0, 10.0));
-	camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
-	world_.setToIdentity();
 }
 
 BasicWidget::~BasicWidget()
 {
 	makeCurrent();
-	for (auto renderable : renderables_) {
-		delete renderable;
-	}
-	renderables_.clear();
+	delete root;
+}
+
+void BasicWidget::updateScene(const qint64 msSinceLastFrame)
+{
+	root->update(msSinceLastFrame);
+}
+
+void BasicWidget::renderScene()
+{
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+
+	glClearColor(0.01f, 0.01f, 0.01f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Draw our scene
+	drawNode(root);
+
+	// Swap buffers
+	update();
 }
 
 //////////////////////////////////////////////////////////////////////
 // Privates
 ///////////////////////////////////////////////////////////////////////
 // Protected
+void BasicWidget::drawNode(SceneNode* node)
+{
+	if (node->getRenderable())
+	{
+		QMatrix4x4 scale = QMatrix4x4();
+		scale.scale(node->getModelScale());
+		const QMatrix4x4 worldSpaceModelMatrix = node->getWorldTransform() * scale;
+
+		node->draw(worldSpaceModelMatrix, camera_.position(), camera_.getViewMatrix(), camera_.getProjectionMatrix(), drawMode_);
+	}
+
+	for (auto it = node->begin(); it != node->end(); ++it)
+	{
+		drawNode(*it);
+	}
+}
+
 void BasicWidget::quit(QString message, int exitCode) {
 	qDebug() << "Quitting:" << message;
 	close();
 	((QWidget*)parent())->close();
+	delete this;
 	exit(exitCode);
 }
 
@@ -82,8 +115,7 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 			qDebug() << "Rotation" << (paused_ ? "paused." : "unpaused.");
 			break;
 		case Qt::Key_R:
-			camera_.setPosition(QVector3D(0.0, 0.0, 10.0));
-			camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
+			camera_.reset();
 			qDebug() << "Camera orientation reset.";
 			update();
 			break;
@@ -96,27 +128,27 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 void BasicWidget::mousePressEvent(QMouseEvent* mouseEvent)
 {
 	if (mouseEvent->button() == Qt::LeftButton) {
-		mouseAction_ = Rotate;
+		mouseAction_ = MouseControl::Rotate;
 	}
 	else if (mouseEvent->button() == Qt::RightButton) {
-		mouseAction_ = Zoom;
+		mouseAction_ = MouseControl::Zoom;
 	}
 	lastMouseLoc_ = mouseEvent->pos();
 }
 
 void BasicWidget::mouseMoveEvent(QMouseEvent* mouseEvent)
 {
-	if (mouseAction_ == NoAction) {
+	if (mouseAction_ == MouseControl::NoAction) {
 		return;
 	}
 	QPoint delta = mouseEvent->pos() - lastMouseLoc_;
 	lastMouseLoc_ = mouseEvent->pos();
-	if (mouseAction_ == Rotate) {
+	if (mouseAction_ == MouseControl::Rotate) {
 		float rotateScale = 0.1f;
 		QPoint scaledDelta = delta * rotateScale;
 		camera_.rotateAboutFocus(delta.x(), delta.y());
 	}
-	else if (mouseAction_ == Zoom) {
+	else if (mouseAction_ == MouseControl::Zoom) {
 		float zoomScale = 0.1f;
 		camera_.zoomCamera(delta.y() * zoomScale);
 	}
@@ -125,7 +157,7 @@ void BasicWidget::mouseMoveEvent(QMouseEvent* mouseEvent)
 
 void BasicWidget::mouseReleaseEvent(QMouseEvent* mouseEvent)
 {
-	mouseAction_ = NoAction;
+	mouseAction_ = MouseControl::NoAction;
 }
 
 void BasicWidget::initializeGL()
@@ -135,33 +167,11 @@ void BasicWidget::initializeGL()
 	
 	qDebug() << "Current path:";
   qDebug() << QDir::currentPath();
-
-	// Prepare texture directory
-	QDir texDir = QDir::current();
-	while (!texDir.exists("textures")) {
-		texDir.cdUp();
-	}
-	texDir.cd("textures");
 	
 	// Load solar system
-	qDebug() << "Loading solar system...";
+	root = new SolarSystem();
 
-	qDebug() << "  Loading Sun...";
-	Sphere sunSphere = Sphere(3.0f);
-	Renderable* sun = new Renderable();
-	sun->init(sunSphere.vertices(), sunSphere.faces(), texDir.filePath("sun.ppm"), "");
-	renderables_ << sun;
-
-	qDebug() << "  Loading Earth...";
-	Sphere earthSphere = Sphere(1.0f);
-	Renderable* earth = new Renderable();
-	earth->init(earthSphere.vertices(), earthSphere.faces(), texDir.filePath("earth.ppm"), "");
-	QMatrix4x4 earthModel = QMatrix4x4();
-	earthModel.translate(QVector3D(6.0f, 0.0f, 0.0f));
-	earth->setModelMatrix(earthModel);
-	renderables_ << earth;
-
-	if (renderables_.isEmpty()) {
+	if (!root) {
 		quit("No objects loaded correctly", 1);
 	}
 
@@ -212,20 +222,8 @@ void BasicWidget::resizeGL(int w, int h)
 void BasicWidget::paintGL()
 {
   qint64 msSinceRestart = frameTimer_.restart();
-  glEnable(GL_DEPTH_TEST);
-  glDisable(GL_CULL_FACE);
 
-  glClearColor(0.0f, 0.0f, 0.0f, 1.f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-	// update all renderables, but only draw the selected one
-	for (int ii = 0; ii < renderables_.size(); ++ii) {
-		Renderable* renderable = renderables_[ii];
-		if (!paused_) { 
-			renderable->update(msSinceRestart); 
-		}
-		renderable->draw(world_, camera_.getViewMatrix(), camera_.getProjectionMatrix(), drawMode_);
-  }
+	updateScene(msSinceRestart);
 	
-  update();
+	renderScene();
 }

@@ -5,19 +5,13 @@
 #include <QtOpenGL>
 #include <QOpenGLFunctions_3_3_core>
 
-Renderable::Renderable() : vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), diffuseMap_(QOpenGLTexture::Target2D), normalMap_(QOpenGLTexture::Target2D), numTris_(0), vertexSize_(0), rotationAxis_(0.0, 1.0, 0.0), rotationSpeed_(0.1)
+Renderable::Renderable() : vbo_(QOpenGLBuffer::VertexBuffer), ibo_(QOpenGLBuffer::IndexBuffer), numTris_(0), vertexSize_(0)
 {
-	rotationAngle_ = 0.0;
+
 }
 
 Renderable::~Renderable()
 {
-	if (diffuseMap_.isCreated()) {
-		diffuseMap_.destroy();
-	}
-	if (normalMap_.isCreated()) {
-		normalMap_.destroy();
-	}
 	if (vbo_.isCreated()) {
 		vbo_.destroy();
 	}
@@ -47,21 +41,9 @@ void Renderable::createShaders()
 	}
 }
 
-void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& faces, const QString& diffuseMap, const QString& normalMap)
+void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& faces)
 {
 	initializeOpenGLFunctions();
-
-	// Set our model matrix to identity
-	modelMatrix_.setToIdentity();
-	// Load diffuse map
-	qDebug() << "Load diffuse" << diffuseMap;
-	diffuseMap_.setData(QImage(diffuseMap).mirrored(true, false));
-
-	// Load normal map
-	qDebug() << "Load normal";
-	if (!normalMap.isEmpty()) {
-		normalMap_.setData(QImage(normalMap).mirrored(true, false));
-	}
 	
 	// set our vertex size
 	vertexSize_ = sizeof(Vertex);
@@ -105,60 +87,46 @@ void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& face
 	vao_.release();
 	vbo_.release();
 	ibo_.release();
-
-	// Set up our lights
-	lights_ << PointLight(QVector3D(4.0f, 0.0f, 0.0f), QVector3D(1.0f, 1.0f, 1.0f));
 }
 
-void Renderable::update(const qint64 msSinceLastFrame)
+void Renderable::draw(const QMatrix4x4& worldSpaceModelMatrix, const QVector3D& viewPosition, const QMatrix4x4& viewMatrix, const QMatrix4x4& projectionMatrix, 
+	const DrawMode drawMode, QOpenGLTexture* diffuseMap, QOpenGLTexture* normalMap, QVector<PointLight>* lights)
 {
-	// For this lab, we want our polygon to rotate. 
-	float sec = msSinceLastFrame / 1000.0f;
-	float anglePart = sec * rotationSpeed_ * 360.f;
-	rotationAngle_ += anglePart;
-	while(rotationAngle_ >= 360.0) {
-		rotationAngle_ -= 360.0;
-	}
-}
-
-void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode)
-{
-	// Create model matrix
-	QMatrix4x4 rotMatrix;
-	rotMatrix.setToIdentity();
-	rotMatrix.rotate(rotationAngle_, rotationAxis_);
-	QMatrix4x4 modelMat = modelMatrix_ * rotMatrix;
-	modelMat = world * modelMat;
-	QMatrix4x4 normalMat = modelMat.inverted().transposed();
+	// Create normal matrix
+	const QMatrix3x3 normalMatrix = worldSpaceModelMatrix.normalMatrix();
 
 	// Bind shader
 	shader_.bind();
 
-	// Set our matrix uniforms!
-	shader_.setUniformValue("modelMatrix", modelMat);
-	shader_.setUniformValue("viewMatrix", view);
-	shader_.setUniformValue("projectionMatrix", projection);
-	shader_.setUniformValue("normalMatrix", normalMat);
-	shader_.setUniformValue("drawMode", (int)drawMode);
-	bool hasNormalMap = normalMap_.isCreated();
-	shader_.setUniformValue("hasNormalMap", hasNormalMap);
-	for (int ii = 0; ii < lights_.size(); ++ii) {
-		const PointLight& light = lights_[ii];
-		char buffer[64];
+	const bool hasDiffuseMap = diffuseMap && diffuseMap->isCreated();
+	const bool hasNormalMap = normalMap && normalMap->isCreated();
 
-		sprintf(buffer, "pointLights[%i].position", ii);
+	// Set our matrix uniforms!
+	shader_.setUniformValue("modelMatrix", worldSpaceModelMatrix);
+	shader_.setUniformValue("viewPosition", viewPosition);
+	shader_.setUniformValue("viewMatrix", viewMatrix);
+	shader_.setUniformValue("projectionMatrix", projectionMatrix);
+	shader_.setUniformValue("normalMatrix", normalMatrix);
+	shader_.setUniformValue("drawMode", int(drawMode));
+	shader_.setUniformValue("hasNormalMap", hasNormalMap);
+	for (int ii = 0; ii < lights->size(); ++ii) {
+		const PointLight& light = (*lights)[ii];
+		const int buflen = 64;
+		char buffer[buflen];
+
+		sprintf_s(buffer, buflen, "pointLights[%i].position", ii);
 		shader_.setUniformValue(buffer, light.position);
-		sprintf(buffer, "pointLights[%i].color", ii);
+		sprintf_s(buffer, buflen, "pointLights[%i].color", ii);
 		shader_.setUniformValue(buffer, light.color);
-		sprintf(buffer, "pointLights[%i].ambientIntensity", ii);
+		sprintf_s(buffer, buflen, "pointLights[%i].ambientIntensity", ii);
 		shader_.setUniformValue(buffer, light.ambientIntensity);
-		sprintf(buffer, "pointLights[%i].specularIntensity", ii);
+		sprintf_s(buffer, buflen, "pointLights[%i].specularIntensity", ii);
 		shader_.setUniformValue(buffer, light.specularIntensity);
-		sprintf(buffer, "pointLights[%i].constant", ii);
+		sprintf_s(buffer, buflen, "pointLights[%i].constant", ii);
 		shader_.setUniformValue(buffer, light.constant);
-		sprintf(buffer, "pointLights[%i].linear", ii);
+		sprintf_s(buffer, buflen, "pointLights[%i].linear", ii);
 		shader_.setUniformValue(buffer, light.linear);
-		sprintf(buffer, "pointLights[%i].quadratic", ii);
+		sprintf_s(buffer, buflen, "pointLights[%i].quadratic", ii);
 		shader_.setUniformValue(buffer, light.quadratic);
 	}
 
@@ -166,12 +134,14 @@ void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMa
 	vao_.bind();
 
 	// Bind textures
-	glActiveTexture(GL_TEXTURE0);
-	diffuseMap_.bind();
-	shader_.setUniformValue(shader_.attributeLocation("diffuseMap"), GL_TEXTURE0);
+	if (hasDiffuseMap) {
+		glActiveTexture(GL_TEXTURE0);
+		diffuseMap->bind();
+		shader_.setUniformValue(shader_.attributeLocation("diffuseMap"), GL_TEXTURE0);
+	}
 	if (hasNormalMap) {
 		glActiveTexture(GL_TEXTURE1);
-		normalMap_.bind();
+		normalMap->bind();
 		shader_.setUniformValue("normalMap", GL_TEXTURE1 - GL_TEXTURE0);
 	}
 
@@ -179,27 +149,14 @@ void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMa
 	glDrawElements(GL_TRIANGLES, numTris_ * 3, GL_UNSIGNED_INT, 0);
 
 	// Un-bind textures
-	diffuseMap_.release();
+	if (hasDiffuseMap) {
+		diffuseMap->release();
+	}
 	if (hasNormalMap) {
-		normalMap_.release();
+		normalMap->release();
 	}
 
 	// Un-bind VAO and shader
 	vao_.release();
 	shader_.release();
-}
-
-void Renderable::setModelMatrix(const QMatrix4x4& transform)
-{
-	modelMatrix_ = transform;
-}
-
-void Renderable::setRotationAxis(const QVector3D& axis)
-{
-	rotationAxis_ = axis;
-}
-
-void Renderable::setRotationSpeed(float speed)
-{
-	rotationSpeed_ = speed;
 }

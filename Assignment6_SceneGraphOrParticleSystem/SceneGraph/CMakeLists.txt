@@ -19,7 +19,11 @@ include_directories(
 set(srcs
   App.cpp
   BasicWidget.cpp
+  Camera.cpp
   Renderable.cpp
+  SceneNode.cpp
+  Sphere.cpp
+  Structs.cpp
   main.cpp
 )
 

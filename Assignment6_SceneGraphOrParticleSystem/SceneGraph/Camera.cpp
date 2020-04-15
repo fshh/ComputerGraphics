@@ -1,6 +1,6 @@
 #include "Camera.h"
 
-Camera::Camera() : position_(0.0, 0.0, 0.0), lookAt_(0.0, 0.0, 0.0), up_(0.0, 1.0, 0.0)
+Camera::Camera(QVector3D position, QVector3D lookAt, QVector3D up) : position_(position), lookAt_(lookAt), up_(up), initialPosition_(position), initialLookAt_(lookAt), initialUp_(up)
 {
 	projection_.setToIdentity();
 }
@@ -128,4 +128,11 @@ QMatrix4x4 Camera::getViewMatrix() const
 QMatrix4x4 Camera::getProjectionMatrix() const
 {
 	return projection_;
+}
+
+void Camera::reset()
+{
+	position_ = initialPosition_;
+	lookAt_ = initialLookAt_;
+	up_ = initialUp_;
 }
