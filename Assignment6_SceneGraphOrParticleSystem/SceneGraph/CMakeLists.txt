@@ -21,7 +21,9 @@ set(srcs
   BasicWidget.cpp
   Camera.cpp
   Renderable.cpp
+  RotatingNode.cpp
   SceneNode.cpp
+  SolarSystem.cpp
   Sphere.cpp
   Structs.cpp
   main.cpp
