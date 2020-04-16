@@ -18,11 +18,9 @@ static QString drawModeToString(DrawMode drawMode) {
 
 //////////////////////////////////////////////////////////////////////
 // Publics
-BasicWidget::BasicWidget(QList<QDir> objectFiles, QWidget* parent) : QOpenGLWidget(parent), objectFiles_(objectFiles), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0), paused_(false)
+BasicWidget::BasicWidget(QList<QDir> objectFiles, QWidget* parent) : QOpenGLWidget(parent), camera_(QVector3D(0, 0, 2)), objectFiles_(objectFiles), logger_(this), drawMode_(DrawMode::DEFAULT), currObj_(0), paused_(true)
 {
   setFocusPolicy(Qt::StrongFocus);
-	camera_.setPosition(QVector3D(0.0, 0.0, 4.0));
-	camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
 	world_.setToIdentity();
 }
 
@@ -92,8 +90,7 @@ void BasicWidget::keyReleaseEvent(QKeyEvent* keyEvent)
 			qDebug() << "Rotation" << (paused_ ? "paused." : "unpaused.");
 			break;
 		case Qt::Key_R:
-			camera_.setPosition(QVector3D(0.0, 0.0, 4.0));
-			camera_.setLookAt(QVector3D(0.0, 0.0, 0.0));
+			camera_.reset();
 			qDebug() << "Camera orientation reset.";
 			update();
 			break;
@@ -156,11 +153,8 @@ void BasicWidget::initializeGL()
 		dir.cd("objects");
 
 		objectFiles_ = {
-			dir.filePath("brickWall_lowRes/brickWall.obj"),
-			//dir.filePath("brickWall_highRes/brickWall.obj"),
-			dir.filePath("house/house_obj.obj"),
-			dir.filePath("windmill/windmill.obj"),
-			dir.filePath("chapel/chapel_obj.obj")
+			dir.filePath("brickWall1/brickWall.obj"),
+			dir.filePath("brickWall2/brickWall.obj")
 		};
 	}
 	
@@ -185,7 +179,7 @@ void BasicWidget::initializeGL()
 
 	// Print instructions
 	qDebug() << "\n\nPass object files to the program like so: ./App \"path/to/object1.obj\" \"path/to/object2.obj\" ...";
-	qDebug() << "If no object files are provided, the program will automatically load in the brick wall, house, windmill, and chapel.";
+	qDebug() << "If no object files are provided, the program will automatically load in two versions of a brick wall.";
 	qDebug() <<
 		"Hotkeys:\n" <<
 		"  Camera Controls:\n" <<
@@ -244,7 +238,7 @@ void BasicWidget::paintGL()
 			renderable->update(msSinceRestart); 
 		}
 		if (ii == currObj_) {
-			renderable->draw(world_, camera_.getViewMatrix(), camera_.getProjectionMatrix(), drawMode_);
+			renderable->draw(world_, camera_.getViewMatrix(), camera_.getProjectionMatrix(), camera_.position(), drawMode_);
 		}
   }
 	

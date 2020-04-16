@@ -54,11 +54,11 @@ void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& face
 	// Set our model matrix to identity
 	modelMatrix_.setToIdentity();
 	// Load diffuse map
-	diffuseMap_.setData(QImage(diffuseMap).mirrored(true, true));
+	diffuseMap_.setData(QImage(diffuseMap));
 
 	// Load normal map
 	if (!normalMap.isEmpty()) {
-		normalMap_.setData(QImage(normalMap).mirrored(true, true));
+		normalMap_.setData(QImage(normalMap));
 	}
 	
 	// set our vertex size
@@ -105,7 +105,7 @@ void Renderable::init(const QVector<Vertex>& vertices, const QVector<Face>& face
 	ibo_.release();
 
 	// Set up our lights
-	lights_ << PointLight(QVector3D(0.0f, 1.0f, 2.0f), QVector3D(1.0f, 1.0f, 1.0f));
+	lights_ << PointLight(QVector3D(0.0f, 1.0f, 4.0f), QVector3D(1.0f, 1.0f, 1.0f), 0.2f, 0.8f);
 }
 
 void Renderable::update(const qint64 msSinceLastFrame)
@@ -119,26 +119,28 @@ void Renderable::update(const qint64 msSinceLastFrame)
 	}
 }
 
-void Renderable::draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode)
+void Renderable::draw(const QMatrix4x4& worldMatrix, const QMatrix4x4& viewMatrix, const QMatrix4x4& projection, const QVector3D& viewPosition, const DrawMode drawMode)
 {
 	// Create model matrix
 	QMatrix4x4 rotMatrix;
 	rotMatrix.setToIdentity();
 	rotMatrix.rotate(rotationAngle_, rotationAxis_);
 	QMatrix4x4 modelMat = modelMatrix_ * rotMatrix;
-	modelMat = world * modelMat;
-	QMatrix4x4 normalMat = modelMat.inverted().transposed();
+	modelMat = worldMatrix * modelMat;
+	QMatrix3x3 normalMat = modelMat.normalMatrix();
 
 	// Bind shader
 	shader_.bind();
+	
+	bool hasNormalMap = normalMap_.isCreated();
 
 	// Set our matrix uniforms!
 	shader_.setUniformValue("modelMatrix", modelMat);
-	shader_.setUniformValue("viewMatrix", view);
+	shader_.setUniformValue("viewMatrix", viewMatrix);
 	shader_.setUniformValue("projectionMatrix", projection);
 	shader_.setUniformValue("normalMatrix", normalMat);
+	shader_.setUniformValue("viewPosition", viewPosition);
 	shader_.setUniformValue("drawMode", (int)drawMode);
-	bool hasNormalMap = normalMap_.isCreated();
 	shader_.setUniformValue("hasNormalMap", hasNormalMap);
 	for (int ii = 0; ii < lights_.size(); ++ii) {
 		const PointLight& light = lights_[ii];

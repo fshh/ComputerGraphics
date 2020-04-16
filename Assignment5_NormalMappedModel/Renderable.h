@@ -50,7 +50,7 @@ public:
 
 	virtual void init(const QVector<Vertex>& vertices, const QVector<Face>& faces, const QString& diffuseMap, const QString& normalMap);
 	virtual void update(const qint64 msSinceLastFrame);
-	virtual void draw(const QMatrix4x4& world, const QMatrix4x4& view, const QMatrix4x4& projection, const DrawMode drawMode);
+	virtual void draw(const QMatrix4x4& worldMatrix, const QMatrix4x4& viewMatrix, const QMatrix4x4& projection, const QVector3D& viewPosition, const DrawMode drawMode);
 
 	void setModelMatrix(const QMatrix4x4& transform);
 	void setRotationAxis(const QVector3D& axis);

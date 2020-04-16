@@ -12,7 +12,7 @@ protected:
 	QMatrix4x4 projection_;
 
 public:
-	Camera();
+	Camera(QVector3D position = QVector3D(0, 0, -1), QVector3D lookAt = QVector3D(0, 0, 0), QVector3D up = QVector3D(0, 1, 0));
 	virtual ~Camera();
 
 	// Manipulate our Camera
@@ -40,6 +40,12 @@ public:
 	QMatrix4x4 getViewMatrix() const;
 	QMatrix4x4 getProjectionMatrix() const;
 
+	// Reset camera to inital orientation
+	void reset();
+
 private:
+	const QVector3D initialPosition_;
+	const QVector3D initialLookAt_;
+	const QVector3D initialUp_;
 
 };
