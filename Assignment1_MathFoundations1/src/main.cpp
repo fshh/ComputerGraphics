@@ -178,5 +178,14 @@ int main(){
     std::cout << "Passed 4: " << unitTest4() << " \n";
     std::cout << "Passed 5: " << unitTest5() << " \n";
 
+    std::cout << "Press Enter to quit." << "\n";
+
+    std::string ch;
+    while (true)
+    {
+        std::getline(std::cin, ch);
+        if (ch.empty()) { break; }
+    }
+
     return 0;
 }
